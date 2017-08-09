@@ -118,7 +118,7 @@ void loop()
          Serial.println("Registro Seleccionado");        
          ReadCommand();                                // Leo uno a uno los datos almacenados y los coloco en una matriz
          Serial.println("Dato previo ..."); 
-         if(i==4)
+         if(i==3)
          {
            ++j;
            Set_CR(Incr_Frequency);
@@ -128,7 +128,7 @@ void loop()
            Valid_Sweep = (State & 0x04);   
            if(Valid_Sweep == FS_Valid)
            {
-             Wire.end();
+             Serial.println("Fin del Proceso");
            }
          }      
        }

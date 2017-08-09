@@ -118,7 +118,7 @@ void loop()
          Serial.println("Registro Seleccionado");        
          ReadCommand();                                // Leo uno a uno los datos almacenados y los coloco en una matriz
          Serial.println("Dato previo ..."); 
-         if(i==4)
+         if(i==3)
          {
            ++j;
            Set_CR(Incr_Frequency);
