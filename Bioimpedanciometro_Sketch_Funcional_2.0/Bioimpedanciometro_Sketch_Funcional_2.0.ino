@@ -74,8 +74,9 @@ byte NI_lower;                     // Byte menor del dato del numero de incremen
 byte NI_upper;                     // Byte mayor del dato del numero de incrementos de frecuencia a ingresar
 int Dato_R;
 int Dato_I;  
-word Mag_Prev;
-word Magnitude;
+long Mag_Prev;
+word Magnitude[3];
+int Mag;
 word Gain_Ref;
 byte Cycles = 0x14;
 int Rref = 470;
@@ -157,6 +158,9 @@ void Taking_Data ()
           Valid_Sweep = (State & 0x04);   
           if(Valid_Sweep == FS_Valid)
           {
+            Mag = (Magnitude[0]+ Magnitude[1]+Magnitude[2])/3;
+            Serial.print("Valor de Magnitud promedio: ");
+            Serial.println(Mag);
             Conf_State =  0x00;
             j=0;
           }
@@ -296,7 +300,6 @@ void ReadCommand_Status ()          // Lee unicamente el registro de Estado para
   { 
     State = Wire.read();    // receive a byte as character
   }  
-  delay(100);
 }
 
 void Mag_Data ()
@@ -304,9 +307,9 @@ void Mag_Data ()
   Dato_R = (Dato[0]<<8)|(Dato[1]);
   Dato_I = (Dato[2]<<8)|(Dato[3]);
   Mag_Prev = (pow(Dato_R,2))+(pow(Dato_I,2));
-  Magnitude = sqrt(Mag_Prev);
+  Magnitude[j] = sqrt(Mag_Prev);
   Serial.print("La Magnitud a la frecuencia dada es: ");  
-  Serial.println(Magnitude);
+  Serial.println(Magnitude[j]);
 }
 
 
