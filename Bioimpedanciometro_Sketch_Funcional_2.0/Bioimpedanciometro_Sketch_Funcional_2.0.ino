@@ -55,8 +55,9 @@ byte Imag_Data2    = 0x97;        // Byte 2 dato Imaginario
                       /* Datos a Ingresar */
                       
 int i ;                            // Valor del ciclo en proceso   
-int j = 0;   
-int conf;                      // Valor de Estado del Ciclo (Todo el proceso se puede colocar en el void setup pues sera realizado una sola vez)
+int j = 0;                         // Valor de la etapa (numero de sensado)
+int h = 0;                         // Variable para la matriz de almacenamiento final de datos  
+int conf;                          // Valor de Estado del Ciclo (Todo el proceso se puede colocar en el void setup pues sera realizado una sola vez)
 int State;                         // Dato de confirmacion para lectura de registros 
 int Reg_Data[4]= {Real_Data1, Real_Data2, Imag_Data1, Imag_Data2};  // Matriz de direccion de datos (Reales e Imaginarios)
 int Dato[4];                       // Matriz acomuladora de datos (Reales e Imaginarios)
@@ -76,16 +77,26 @@ int Dato_R;
 int Dato_I;  
 long Mag_Prev;
 word Magnitude[3];
-int Mag;
+long Mag[5];
+long Valf_Mag;
 word Gain_Ref;
 byte Cycles = 0x14;
 int Rref = 470;
+long B_Prev;
+long Bio_impedance;
+float EC3 = -0.524;
+float EC1 = -1.1952;
+float EC2 = -0.6712;
+float EC4 = -0.2902;
+int Stage = 0;
+int LED = 13;
  
 void setup() 
 {
   Serial.begin(9600);   // 
   Wire.begin();
-  Program_Port();  
+  Program_Port();
+  pinMode(LED, OUTPUT);  
   
 }
 
@@ -93,17 +104,65 @@ void setup()
 
 void loop() 
 {
-  Impedance();    
+  Impedance();
+  conf=0;
+  Stage=0;
+  if(Bio_impedance < 500)
+  {
+    digitalWrite(LED, HIGH);
+  }
+  else  
+  {
+    digitalWrite(LED, LOW);
+  }
 }
 
 //////////////////   Fin del Ciclo Principal    /////////////////////
 
-void Impedance()
+void Impedance ()
 {
 
-  while(conf<4)
+  while(Stage < 1)
   {
-    if((conf==0)||(conf==2))
+    Imp_Teor();
+  }
+}
+
+void Imp_Teor ()
+{
+
+  Value_Imp();
+  B_Prev = (Valf_Mag * EC3)+ 10850;
+  if(B_Prev < 286)
+  {
+    Bio_impedance = (Valf_Mag * EC1)+ 24318;
+  }
+  else if((B_Prev < 483)&&(B_Prev > 286))
+  {
+    Bio_impedance = (Valf_Mag * EC2)+ 13800;    
+  }
+  else if(B_Prev > 746)
+  {
+    Bio_impedance = (Valf_Mag * EC4)+ 6349;    
+  }
+  else
+  {
+    Bio_impedance = B_Prev;
+  }
+  Serial.print("Valor de Bioimpedancia: ");
+  Serial.print(Bio_impedance);
+  Serial.println(" Ohms");
+  Stage = 1;
+}
+
+
+
+void Value_Imp()
+{
+
+  while(conf<10)
+  {
+    if((conf==0)||(conf==2)||(conf==4)||(conf==6)||(conf==8))
     {
       Init_Command();
       delay(14);
@@ -116,11 +175,17 @@ void Impedance()
       Set_CR1(Reset);
     } 
     
-    if(conf == 3)
+    if((conf == 3)||(conf==5)||(conf==7))
     { 
       PORTD = Switch_Ch1;      
       Taking_Data();
+      
     } 
+    if(conf == 9)
+    { 
+      PORTD = Switch_Ch1;      
+      Taking_Data();
+    }     
     conf++; 
   } 
 
@@ -142,9 +207,7 @@ void Taking_Data ()
     for(i=0; i<4; i++)
     {
       AddressPointer(Reg_Data[i]);                             // Selecciono uno a uno los registros donde estan los datos reales e imaginarios
-      Serial.print("Registro Leido: "); 
-      Serial.println(Reg_Data[i],HEX);
-      Serial.print("Valor de: ");        
+      delay(10);
       ReadCommand();                                // Leo uno a uno los datos almacenados y los coloco en una matriz
       if(i==3)
       {
@@ -158,11 +221,15 @@ void Taking_Data ()
           Valid_Sweep = (State & 0x04);   
           if(Valid_Sweep == FS_Valid)
           {
-            Mag = (Magnitude[0]+ Magnitude[1]+Magnitude[2])/3;
-            Serial.print("Valor de Magnitud promedio: ");
-            Serial.println(Mag);
+            Mag[h] = (Magnitude[0]+ Magnitude[1]+Magnitude[2])/3;
             Conf_State =  0x00;
             j=0;
+            if(h==4)
+            {
+              Valf_Mag = (Mag[1]+ Mag[2]+ Mag[3]+ Mag[4])/4;
+              h=0;
+            }
+            h++;
           }
         }  
       }      
@@ -181,7 +248,7 @@ void Init_Command ()
   Set_CR(Gain_X1);   
   Set_CR(Start_Process);
   Set_CR(Sweep_Active);
-  Serial.println("... Escritura de parametros lista ...");
+  delay(10);
   
 }
 
@@ -257,7 +324,6 @@ void AddressPointer (byte Reg_Address)                  // Funcion que ubica en 
 {
   
   Wire.beginTransmission(Slave_Add);  // Envia los 7 bits de direccion del AD5933 + el bit de escritura (0), para comenzar
-  Serial.println(" ");
   Wire.write(Set_AddPointer);
   Wire.write(Reg_Address);
   Wire.endTransmission(); 
@@ -269,8 +335,7 @@ void ReadCommand ()                // Funcion para leer los registros de los dat
   while(Wire.available())    // slave may send less than requested
   { 
     Dato[i] = Wire.read();    // receive a byte as character
-  }  
-  Serial.println(Dato[i],HEX);  
+  }   
 }
 
 void Set_CR (byte Control)                     // Coloca en el registro de Control datos para avanzar en el proceso
@@ -300,6 +365,7 @@ void ReadCommand_Status ()          // Lee unicamente el registro de Estado para
   { 
     State = Wire.read();    // receive a byte as character
   }  
+  delay(10);
 }
 
 void Mag_Data ()
@@ -308,8 +374,6 @@ void Mag_Data ()
   Dato_I = (Dato[2]<<8)|(Dato[3]);
   Mag_Prev = (pow(Dato_R,2))+(pow(Dato_I,2));
   Magnitude[j] = sqrt(Mag_Prev);
-  Serial.print("La Magnitud a la frecuencia dada es: ");  
-  Serial.println(Magnitude[j]);
 }
 
 
