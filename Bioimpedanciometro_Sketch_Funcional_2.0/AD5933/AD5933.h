@@ -1,5 +1,5 @@
-#ifndef AD5933_UIS_h
-#define AD5933_UIS_h
+#ifndef AD5933_h
+#define AD5933_h
 
 /**
  * Includes
@@ -50,7 +50,7 @@
 #define Imag_Data1     (0x96)        // #define 1 dato Imaginario 
 #define Imag_Data2     (0x97)        // #define 2 dato Imaginario 
 
-class AD5933_UIS {
+class AD5933 {
     public:
         
 		void Impedance();
@@ -60,13 +60,17 @@ class AD5933_UIS {
 		void Program_Port();
         void Init_Command();
 		void Taking_Data();
+		void Value_Imp();
+		void Imp_Teor();
 		void Set_CR1(byte);
 		void AddressPointer(byte);
 		void ReadCommand_Status();
 		void ReadCommand();
 		void Set_CR(byte);
 		void Mag_Data();
-		int i ;                            // Valor del ciclo en proceso    
+		int i ;                            // Valor del ciclo en proceso 
+		int j = 0;                         // Valor de la etapa (numero de sensado)
+		int h = 0;                         // Variable para la matriz de almacenamiento final de datos  	
 		int conf;                      // Valor de Estado del Ciclo (Todo el proceso se puede colocar en el void setup pues sera realizado una sola vez)
 		int State;                         // Dato de confirmacion para lectura de registros 
 		int Reg_Data[4]= {Real_Data1, Real_Data2, Imag_Data1, Imag_Data2};  // Matriz de direccion de datos (Reales e Imaginarios)
@@ -74,7 +78,17 @@ class AD5933_UIS {
 		int Valid_Sweep;
 		int Conf_State;    
 		int Dato_R;
-		int Dato_I;	
+		int Dato_I;
+		long Mag_Prev;
+		word Magnitude[3];
+		long Mag[5];
+		long Valf_Mag;	
+		long B_Prev;
+		long Bio_impedance;
+		float EC3 = -0.524;
+		float EC1 = -1.1952;
+		float EC2 = -0.6712;
+		float EC4 = -0.2902;
 		
 };
 

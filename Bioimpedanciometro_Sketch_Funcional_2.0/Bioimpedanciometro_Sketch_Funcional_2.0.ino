@@ -26,9 +26,7 @@ y 1 para escribir).
 #define Gain_X1        0x01        // Establecimiento de Ganancia en un Factor de x1
 #define Port_OutD      0x40        // Puertos de Salida D
 #define Port_OutC      0x03        // Puertos de Salida C
-#define Switch_Ch1     0x40        // Activacion del canal 1 del switch
-#define Switch_Ch2     0x00        // Activacion del canal 2 del switch 
-#define Reset          0x01        // Reset para comenzar el sensado de la Z desconocida sin desenergizar   
+#define Rst          0x01        // Reset para comenzar el sensado de la Z desconocida sin desenergizar   
 
                         /* Bytes de Registros */
                         
@@ -89,14 +87,13 @@ float EC1 = -1.1952;
 float EC2 = -0.6712;
 float EC4 = -0.2902;
 int Stage = 0;
-int LED = 13;
+int SW = 6;
  
 void setup() 
 {
   Serial.begin(9600);   // 
   Wire.begin();
-  Program_Port();
-  pinMode(LED, OUTPUT);  
+  Program_Port(); 
   
 }
 
@@ -104,23 +101,14 @@ void setup()
 
 void loop() 
 {
-  Impedance();
-  conf=0;
-  Stage=0;
-  if(Bio_impedance < 500)
-  {
-    digitalWrite(LED, HIGH);
-  }
-  else  
-  {
-    digitalWrite(LED, LOW);
-  }
+  Impedance(); 
+
 }
 
 //////////////////   Fin del Ciclo Principal    /////////////////////
 
 void Impedance ()
-{
+{ 
 
   while(Stage < 1)
   {
@@ -170,20 +158,20 @@ void Value_Imp()
     
     if(conf == 1)
     { 
-      PORTD = Switch_Ch2;
+      digitalWrite(SW, LOW);
       Taking_Data();
-      Set_CR1(Reset);
+      Set_CR1(Rst);
     } 
     
     if((conf == 3)||(conf==5)||(conf==7))
     { 
-      PORTD = Switch_Ch1;      
+      digitalWrite(SW, HIGH);      
       Taking_Data();
       
     } 
     if(conf == 9)
     { 
-      PORTD = Switch_Ch1;      
+      digitalWrite(SW, HIGH);      
       Taking_Data();
     }     
     conf++; 
@@ -193,8 +181,7 @@ void Value_Imp()
 
 void Program_Port()
 {
-  DDRD = Port_OutD;
-  DDRC = Port_OutC;
+  pinMode(SW, OUTPUT);
 }
 
 void Taking_Data ()
@@ -375,6 +362,7 @@ void Mag_Data ()
   Mag_Prev = (pow(Dato_R,2))+(pow(Dato_I,2));
   Magnitude[j] = sqrt(Mag_Prev);
 }
+
 
 
 

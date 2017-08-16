@@ -8,11 +8,11 @@
  * @author Michael Meli
  */
 
-#include "AD5933.h"
 #include <Math.h>
+#include <Wire.h>
+#include "AD5933.h"
 
-
-void AD5933_UIS::WriteCommand_Freq()                  // Funcion para escribir la frecuencia requerida
+void AD5933::WriteCommand_Freq()                  // Funcion para escribir la frecuencia requerida
 {
   byte Frec_lower = 0x7B;
   byte Frec_med = 0x14;
@@ -34,7 +34,7 @@ void AD5933_UIS::WriteCommand_Freq()                  // Funcion para escribir l
   Wire.endTransmission(); 
 }
 
-void AD5933_UIS::Increment_Freq()                  // Funcion para la resolucion de los incrementos de la frecuencia
+void AD5933::Increment_Freq()                  // Funcion para la resolucion de los incrementos de la frecuencia
 {
   byte IF_lower = 0x5C;
   byte IF_med = 0x8F;
@@ -56,7 +56,7 @@ void AD5933_UIS::Increment_Freq()                  // Funcion para la resolucion
   Wire.endTransmission(); 
 }
 
-void AD5933_UIS::NumberIncrement()                 // Funcion para establecer el numero de incrementos
+void AD5933::NumberIncrement()                 // Funcion para establecer el numero de incrementos
 {
   byte NI_lower = 0x02;
   byte NI_upper = 0x00;  
@@ -72,7 +72,7 @@ void AD5933_UIS::NumberIncrement()                 // Funcion para establecer el
   Wire.endTransmission(); 
 }
 
-void AD5933_UIS::CycleNumber()
+void AD5933::CycleNumber()
 {
   byte Cycles = 0x14;  
   Wire.beginTransmission(Slave_Add);  // Envia los 7 bits de direccion del AD5933 + el bit de escritura (0), para comenzar
@@ -81,7 +81,7 @@ void AD5933_UIS::CycleNumber()
   Wire.endTransmission();
 }   
 
-void AD5933_UIS::AddressPointer (byte Reg_Address)                  // Funcion que ubica en el registro la direccion posterior a leer
+void AD5933::AddressPointer (byte Reg_Address)                  // Funcion que ubica en el registro la direccion posterior a leer
 {
   
   Wire.beginTransmission(Slave_Add);  // Envia los 7 bits de direccion del AD5933 + el bit de escritura (0), para comenzar
@@ -90,7 +90,7 @@ void AD5933_UIS::AddressPointer (byte Reg_Address)                  // Funcion q
   Wire.endTransmission(); 
 }  
 
-void AD5933_UIS::ReadCommand ()                // Funcion para leer los registros de los datos reales e imaginarios sensados
+void AD5933::ReadCommand ()                // Funcion para leer los registros de los datos reales e imaginarios sensados
 {
   Wire.requestFrom(Slave_Add,1);    // request 6 bytes from slave device #2
   while(Wire.available())    // slave may send less than requested
@@ -99,7 +99,7 @@ void AD5933_UIS::ReadCommand ()                // Funcion para leer los registro
   }  
 }
 
-void AD5933_UIS::Set_CR (byte Control)                     // Coloca en el registro de Control datos para avanzar en el proceso
+void AD5933::Set_CR (byte Control)                     // Coloca en el registro de Control datos para avanzar en el proceso
 {
   
   Wire.beginTransmission(Slave_Add);  // Envia los 7 bits de direccion del AD5933 + el bit de escritura (0), para comenzar
@@ -109,7 +109,7 @@ void AD5933_UIS::Set_CR (byte Control)                     // Coloca en el regis
  
 }
 
-void AD5933_UIS::Set_CR1 (byte Control)                     // Coloca en el registro de Control datos para avanzar en el proceso
+void AD5933::Set_CR1 (byte Control)                     // Coloca en el registro de Control datos para avanzar en el proceso
 {
   
   Wire.beginTransmission(Slave_Add);  // Envia los 7 bits de direccion del AD5933 + el bit de escritura (0), para comenzar
@@ -119,7 +119,7 @@ void AD5933_UIS::Set_CR1 (byte Control)                     // Coloca en el regi
  
 }
 
-void AD5933_UIS::ReadCommand_Status ()          // Lee unicamente el registro de Estado para obtener datos de confirmacion
+void AD5933::ReadCommand_Status ()          // Lee unicamente el registro de Estado para obtener datos de confirmacion
 {
   Wire.requestFrom(Slave_Add,1);    // request 6 bytes from slave device #2
   while(Wire.available())    // slave may send less than requested
@@ -129,7 +129,22 @@ void AD5933_UIS::ReadCommand_Status ()          // Lee unicamente el registro de
   delay(10);
 }
 
-void AD5933_UIS::Mag_Data ()
+void AD5933::Init_Command ()
+{
+
+  WriteCommand_Freq();
+  Increment_Freq();
+  NumberIncrement();
+  CycleNumber();
+  Set_CR(Standby_Mode);
+  Set_CR(Gain_X1);   
+  Set_CR(Start_Process);
+  Set_CR(Sweep_Active);
+  delay(10);
+  
+}
+
+void AD5933::Mag_Data ()
 {
   Dato_R = (Dato[0]<<8)|(Dato[1]);
   Dato_I = (Dato[2]<<8)|(Dato[3]);
@@ -137,9 +152,8 @@ void AD5933_UIS::Mag_Data ()
   word Magnitude = sqrt(Mag_Prev);
 }
 
-void AD5933_UIS::Taking_Data ()
+void AD5933::Taking_Data ()
 {
-  int j=0;	
   AddressPointer(Status);
   ReadCommand_Status();
   Conf_State = (State & 0x02);
@@ -148,6 +162,7 @@ void AD5933_UIS::Taking_Data ()
     for(i=0; i<4; i++)
     {
       AddressPointer(Reg_Data[i]);                             // Selecciono uno a uno los registros donde estan los datos reales e imaginarios
+      delay(10);
       ReadCommand();                                // Leo uno a uno los datos almacenados y los coloco en una matriz
       if(i==3)
       {
@@ -161,8 +176,15 @@ void AD5933_UIS::Taking_Data ()
           Valid_Sweep = (State & 0x04);   
           if(Valid_Sweep == FS_Valid)
           {
+            Mag[h] = (Magnitude[0]+ Magnitude[1]+Magnitude[2])/3;
             Conf_State =  0x00;
             j=0;
+            if(h==4)
+            {
+              Valf_Mag = (Mag[1]+ Mag[2]+ Mag[3]+ Mag[4])/4;
+              h=0;
+            }
+            h++;
           }
         }  
       }      
@@ -170,12 +192,12 @@ void AD5933_UIS::Taking_Data ()
   }
 }
 
-void AD5933_UIS::Impedance()
+void AD5933::Value_Imp()
 {
 
-  while(conf<4)
+  while(conf<10)
   {
-    if((conf==0)||(conf==2))
+    if((conf==0)||(conf==2)||(conf==4)||(conf==6)||(conf==8))
     {
       Init_Command();
       delay(14);
@@ -188,12 +210,55 @@ void AD5933_UIS::Impedance()
       Set_CR1(Reset);
     } 
     
-    if(conf == 3)
+    if((conf == 3)||(conf==5)||(conf==7))
     { 
       PORTD = Switch_Ch1;      
       Taking_Data();
+      
     } 
+    if(conf == 9)
+    { 
+      PORTD = Switch_Ch1;      
+      Taking_Data();
+    }     
     conf++; 
   } 
 
+}
+
+
+void AD5933::Imp_Teor ()
+{
+
+  Value_Imp();
+  B_Prev = (Valf_Mag * EC3)+ 10850;
+  if(B_Prev < 286)
+  {
+    Bio_impedance = (Valf_Mag * EC1)+ 24318;
+  }
+  else if((B_Prev < 483)&&(B_Prev > 286))
+  {
+    Bio_impedance = (Valf_Mag * EC2)+ 13800;    
+  }
+  else if(B_Prev > 746)
+  {
+    Bio_impedance = (Valf_Mag * EC4)+ 6349;    
+  }
+  else
+  {
+    Bio_impedance = B_Prev;
+  }
+  Serial.print("Valor de Bioimpedancia: ");
+  Serial.print(Bio_impedance);
+  Serial.println(" Ohms");
+  Stage = 1;
+}
+
+void AD5933::Impedance ()
+{
+
+  while(Stage < 1)
+  {
+    Imp_Teor();
+  }
 }

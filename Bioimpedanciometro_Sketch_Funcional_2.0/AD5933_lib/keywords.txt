@@ -1,5 +1,0 @@
-
-//////////////////  AD5933  /////////////////////////////////
-/* Code created specially and for the only reason to allow the development of our thesis project (UIS)*/
-
-Impedance           KEYWORD1
