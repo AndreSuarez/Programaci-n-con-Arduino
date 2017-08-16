@@ -1,1 +1,1 @@
-Impedance           KEYWORD1
+impedance	KEYWORD1

@@ -26,7 +26,7 @@
 #define Port_OutC      (0x03)        // Puertos de Salida C
 #define Switch_Ch1     (0x40)        // Activacion del canal 1 del switch
 #define Switch_Ch2     (0x00)        // Activacion del canal 2 del switch 
-#define Reset          (0x01)        // Reset para comenzar el sensado de la Z desconocida sin desenergizar   
+#define Rst          (0x01)        // Reset para comenzar el sensado de la Z desconocida sin desenergizar   
 
                         /** Registros */
                         
@@ -52,8 +52,8 @@
 
 class AD5933 {
     public:
-        
-		void Impedance();
+        AD5933(int St);
+		long impedance();
 		
     private:
 		
@@ -61,34 +61,54 @@ class AD5933 {
         void Init_Command();
 		void Taking_Data();
 		void Value_Imp();
-		void Imp_Teor();
+		long Imp_Teor();
 		void Set_CR1(byte);
 		void AddressPointer(byte);
 		void ReadCommand_Status();
 		void ReadCommand();
 		void Set_CR(byte);
 		void Mag_Data();
-		int i ;                            // Valor del ciclo en proceso 
+	    void WriteCommand_Freq();
+	    void Increment_Freq();
+	    void NumberIncrement();
+	    void CycleNumber();
+		int i ;                            // Valor del ciclo en proceso   
 		int j = 0;                         // Valor de la etapa (numero de sensado)
-		int h = 0;                         // Variable para la matriz de almacenamiento final de datos  	
-		int conf;                      // Valor de Estado del Ciclo (Todo el proceso se puede colocar en el void setup pues sera realizado una sola vez)
+		int h = 0;                         // Variable para la matriz de almacenamiento final de datos  
+		int conf;                          // Valor de Estado del Ciclo (Todo el proceso se puede colocar en el void setup pues sera realizado una sola vez)
 		int State;                         // Dato de confirmacion para lectura de registros 
 		int Reg_Data[4]= {Real_Data1, Real_Data2, Imag_Data1, Imag_Data2};  // Matriz de direccion de datos (Reales e Imaginarios)
 		int Dato[4];                       // Matriz acomuladora de datos (Reales e Imaginarios)
 		int Valid_Sweep;
-		int Conf_State;    
+		int Conf_State;
+		long Frec_I = 0x2E147B;            // Frecuencia inicial de 90KHz
+		long Frec_F = 0x28F5C;             // Frecuencia de resolucion de 5KHz    
+		byte Frec_lower;                   // Byte menor del dato de frecuencia a ingresar  
+		byte Frec_med;                     // Byte medio del dato de frecuencia a ingresar                      
+		byte Frec_upper;                   // Byte mayor del dato de frecuencia a ingresar  
+		byte IF_lower;                     // Byte menor del dato de incremento de frecuencia a ingresar
+		byte IF_med;                       // Byte medio del dato de incremento de frecuencia a ingresar
+		byte IF_upper;                     // Byte mayor del dato de incremento de frecuencia a ingresar 
+		byte NI_lower;                     // Byte menor del dato del numero de incrementos de frecuencia a ingresar 
+		byte NI_upper;                     // Byte mayor del dato del numero de incrementos de frecuencia a ingresar
 		int Dato_R;
-		int Dato_I;
+		int Dato_I;  
 		long Mag_Prev;
 		word Magnitude[3];
 		long Mag[5];
-		long Valf_Mag;	
+		long Valf_Mag;
+		word Gain_Ref;
+		byte Cycles = 0x14;
+		int Rref = 470;
 		long B_Prev;
 		long Bio_impedance;
+		long BioImpedance;
 		float EC3 = -0.524;
 		float EC1 = -1.1952;
 		float EC2 = -0.6712;
 		float EC4 = -0.2902;
+		int Stage ;
+		int St;
 		
 };
 
