@@ -102,7 +102,6 @@ void setup()
 void loop() 
 {
   Impedance(); 
-
 }
 
 //////////////////   Fin del Ciclo Principal    /////////////////////
