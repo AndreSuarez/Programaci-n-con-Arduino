@@ -3,11 +3,13 @@
 #include <Wire.h>
 #include <Nextion.h>
 
-#define AlarmaRet 7      // Pin para la deteccion de la alarma de la placa de retorno (Desconectada)
+#define PlacaRet 8      // Pin para la deteccion de la placa de retorno (Desconectada)
+#define Z_On     9      // Pin para la deteccion de impedancia
                          
 int Sens = 1;            
 int Z; 
 int Pin;
+long Val;
 int Vout;                  
 int Cut_coag = 0;           
 int Power = 100;         // Potencia asignada por medio de la pantalla Nextion (Entrada al sistema)
@@ -19,6 +21,8 @@ void setup()
 {
   Serial.begin(9600);
   Wire.begin();
+  pinMode(PlacaRet, OUTPUT);
+  pinMode(Z_On, OUTPUT);
 }
 
 //////////////////   Ciclo de Sensado   ////////////////////////
@@ -42,18 +46,18 @@ void loop()
 void SensorBio ()
 {
   int Placa = Bio.impedance();
-  if(Placa < 480)
+  if(Paca < 480)
     { 
       Serial.println("Placa detectada ");
-      digitalWrite(AlarmaRet, LOW);
+      digitalWrite(PlacaRet, HIGH);
       SetBio = true;                              // Switch para cortocircuitar la placa de retorno y realizar medicion entre el lapiz y dicha placa  
     }
     else
     {
       Serial.println("Error Placa Desconectada ");
-      digitalWrite(AlarmaRet, HIGH);
+      digitalWrite(PlacaRet, LOW);
     }
-    if(SetBio)
+    if(SetBio==1)
     {
       int Impedance = Bio.impedance();
       if(Impedance < 2500)
@@ -61,10 +65,13 @@ void SensorBio ()
         Z = Impedance;
         Cut_coag = 1;
         Sens = 0;
+        digitalWrite(Z_On, HIGH);
+        
       }
       else
       {
-        Sens = 1; 
+        Sens = 1;
+        digitalWrite(Z_On, LOW); 
       }
     }  
 }
@@ -77,9 +84,12 @@ void PowerStage ()
   }
 }
 
-void CalcPower (int Pin)
+void CalcPower (long Pin)
 {
-  Vout = sqrt(Z*Pin);    
+  Val=Z*Pin;
+  Vout = sqrt(Val);       
+  Sens = 1;
+  Cut_coag = 0;
 }
 
 
