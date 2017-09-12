@@ -15,19 +15,18 @@
 
 AD5933::AD5933(int St)
 {
-	Stage = St;
+	Serial.begin(St);
+	Wire.begin();
 }
 long AD5933::impedance ()
 { 
+   conf=0;
+   Imp_Teor();
+   BioImpedance = Bio_impedance;
+   return BioImpedance;
 
-  while(Stage < 1)
-  {
-    Imp_Teor();
-	BioImpedance = Bio_impedance;
-	return BioImpedance;
-	
-  }
 }
+
 
 long AD5933::Imp_Teor ()
 {
@@ -51,7 +50,7 @@ long AD5933::Imp_Teor ()
     Bio_impedance = B_Prev;
   }
   return Bio_impedance;
-  Stage = 1;
+
 }
 
 

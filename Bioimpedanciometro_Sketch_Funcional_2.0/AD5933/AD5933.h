@@ -22,11 +22,7 @@
 #define Sweep_Active   (0x20)        // Activar Barrido de Frecuencia
 #define Incr_Frequency (0x30)        // Pasar de un valor de frecuencia al siguiente
 #define Gain_X1        (0x01)        // Establecimiento de Ganancia en un Factor de x1
-#define Port_OutD      (0x40)        // Puertos de Salida D
-#define Port_OutC      (0x03)        // Puertos de Salida C
-#define Switch_Ch1     (0x40)        // Activacion del canal 1 del switch
-#define Switch_Ch2     (0x00)        // Activacion del canal 2 del switch 
-#define Rst          (0x01)        // Reset para comenzar el sensado de la Z desconocida sin desenergizar   
+#define Rst            (0x01)        // Reset para comenzar el sensado de la Z desconocida sin desenergizar   
 
                         /** Registros */
                         
@@ -107,7 +103,8 @@ class AD5933 {
 		float EC1 = -1.1952;
 		float EC2 = -0.6712;
 		float EC4 = -0.2902;
-		int Stage ;
+		int Stage;
+		int _Stage ;
 		int St;
 		
 };
