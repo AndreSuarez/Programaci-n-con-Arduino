@@ -86,7 +86,7 @@ void PowerStage ()
 
 void CalcPower (long Pin)
 {
-  Val=Z*Pin;
+  Val=(Z*sqrt(2))*Pin;
   Vout = sqrt(Val);       
   Sens = 1;
   Cut_coag = 0;
