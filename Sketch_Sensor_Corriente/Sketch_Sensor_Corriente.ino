@@ -22,7 +22,7 @@ void setup() {
   Serial.begin(9600);
 //  Wire.begin(7);                  //unirse al bus I2C con la dirección # 7
 //  Wire.onRequest(requestSens);    
-  
+  pinMode(Condition_Up, INPUT);
   pinMode(Off_Current,OUTPUT);
   
 }
