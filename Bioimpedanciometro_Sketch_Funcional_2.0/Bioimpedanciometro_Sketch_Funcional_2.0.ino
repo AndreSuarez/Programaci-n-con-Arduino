@@ -82,10 +82,10 @@ byte Cycles = 0x14;
 int Rref = 470;
 long B_Prev;
 long Bio_impedance;
-float EC3 = -0.524;
-float EC1 = -1.1952;
-float EC2 = -0.6712;
-float EC4 = -0.2902;
+float EC3 = -0.7933;
+float EC1 = -0.3671;
+float EC2 = -1.143;
+float EC4 = -0.4906;
 int Stage = 0;
 int SW = 6;
  
@@ -101,7 +101,9 @@ void setup()
 
 void loop() 
 {
-  Impedance(); 
+  Impedance();
+  Stage = 0;
+  conf = 0;
 }
 
 //////////////////   Fin del Ciclo Principal    /////////////////////
@@ -119,18 +121,18 @@ void Imp_Teor ()
 {
 
   Value_Imp();
-  B_Prev = (Valf_Mag * EC3)+ 10850;
-  if(B_Prev < 286)
+  B_Prev = (Valf_Mag * EC3)+ 11637;
+  if(B_Prev < 293)
   {
-    Bio_impedance = (Valf_Mag * EC1)+ 24318;
+    Bio_impedance = (Valf_Mag * EC1)+ 5485.9;
   }
-  else if((B_Prev < 483)&&(B_Prev > 286))
+  else if((B_Prev < 561)&&(B_Prev > 293))
   {
-    Bio_impedance = (Valf_Mag * EC2)+ 13800;    
+    Bio_impedance = (Valf_Mag * EC2)+ 16544;    
   }
-  else if(B_Prev > 746)
+  else if(B_Prev > 790)
   {
-    Bio_impedance = (Valf_Mag * EC4)+ 6349;    
+    Bio_impedance = (Valf_Mag * EC4)+ 7538.4;    
   }
   else
   {
@@ -213,6 +215,7 @@ void Taking_Data ()
             if(h==4)
             {
               Valf_Mag = (Mag[1]+ Mag[2]+ Mag[3]+ Mag[4])/4;
+              Serial.println(Valf_Mag);
               h=0;
             }
             h++;

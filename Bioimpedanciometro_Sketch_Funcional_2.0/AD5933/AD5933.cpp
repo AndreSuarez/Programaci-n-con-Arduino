@@ -32,18 +32,18 @@ long AD5933::Imp_Teor ()
 {
 
   Value_Imp();
-  B_Prev = (Valf_Mag * EC3)+ 10850;
-  if(B_Prev < 286)
+  B_Prev = (Valf_Mag * EC3)+ 11637;
+  if(B_Prev < 293)
   {
-    Bio_impedance = (Valf_Mag * EC1)+ 24318;
+    Bio_impedance = (Valf_Mag * EC1)+ 5485.9;
   }
-  else if((B_Prev < 483)&&(B_Prev > 286))
+  else if((B_Prev < 561)&&(B_Prev > 293))
   {
-    Bio_impedance = (Valf_Mag * EC2)+ 13800;    
+    Bio_impedance = (Valf_Mag * EC2)+ 16544;    
   }
-  else if(B_Prev > 746)
+  else if(B_Prev > 790)
   {
-    Bio_impedance = (Valf_Mag * EC4)+ 6349;    
+    Bio_impedance = (Valf_Mag * EC4)+ 7538.4;    
   }
   else
   {

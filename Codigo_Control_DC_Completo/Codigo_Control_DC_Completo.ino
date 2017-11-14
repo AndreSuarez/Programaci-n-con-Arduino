@@ -1,3 +1,4 @@
+
 #include <Wire.h>
 
 #define Pwr_Stage1  9   // Se le dio este roden para identificar fisicamente en la placa las secciones activadas
@@ -16,7 +17,7 @@ int Bio_Value = 0;                // Valor de bioimpedancia recibido para calcul
 int Volt_Value;                   // *Valor de tension obtenido a partir de los datos de Bioimpedancia y Potencia desde  la pantalla requerido para calculo de Tension de Salida
 int Tutil;                        // Valor extraido del dato recopilado de la frecuencia de Modulacion
 int T_Value;                      // *Valor de periodo requerido para calculo de Tension de Salida   
-int Volt_level[100];              // Matriz de valores de tension Elegibles   
+int Volt_level[256];              // Matriz de valores de tension Elegibles   
 int b;                            // Contador para la recopilacion de datos por I2C
 int Volt_Comp;                    // Valor de comparacion usado para determinar el dato de la Matriz de tensiones fijas mas cercano al valor de salida requerido 
 int Volt_Prev = 5;                // Valor de inicial comparacion para obtener la tension de comparacion correcta  
@@ -32,6 +33,7 @@ int Data_Value[2];                // Matriz de Datos obtenidos del sistema via I
 void setup() {                    
 
   Assignment_Out();               // Asignacion de los valores de la matriz de salida con los puertos fisicos de salida
+  Selection_Volt();
   
   pinMode(Pwr_Stage1, OUTPUT);
   pinMode(Pwr_Stage2, OUTPUT);
@@ -72,6 +74,57 @@ void loop() {
     Calc_Power(Power_Value, Bio_Value, Tutil);       // Funcion de calculo de tension para la salida previa de la fuente conmutada           
     Comparate_Stage(Volt_Value);                     // Funcion de calculo de resistencia y asignacion de canales activados para el valor de tension requerido    
   }
+}
+
+void Selection_Volt ()
+{
+  Volt_level[1] = 49.44;
+  Volt_level[2] = 47.72;
+  Volt_level[4] = 45.81;
+  Volt_level[8] = 43.66;
+  Volt_level[16] = 41.24;
+  Volt_level[32] = 38.49;
+  Volt_level[3] = 35.72;
+  Volt_level[5] = 34.74;    
+  Volt_level[6] = 33.99;
+  Volt_level[9] = 33.61;
+  Volt_level[10] = 32.92;
+  Volt_level[17] = 32.30;
+  Volt_level[18] = 31.67;
+  Volt_level[20] = 30.94;
+  Volt_level[34] = 30.19;  
+  Volt_level[36] = 29.54; 
+  Volt_level[40] = 28.78;
+  Volt_level[7] = 28.06;
+  Volt_level[11] = 27.40;
+  Volt_level[13] = 26.89;
+  Volt_level[14] = 26.49;
+  Volt_level[21] = 26.13;
+  Volt_level[22] = 25.76;
+  Volt_level[37] = 25.22;
+  Volt_level[38] = 24.88;
+  Volt_level[65] = 24.29;
+  Volt_level[50] = 23.81;
+  Volt_level[72] = 23.21;
+  Volt_level[80] = 22.70;
+  Volt_level[27] = 22.26;
+  Volt_level[30] = 21.74;
+  Volt_level[46] = 21.18;
+  Volt_level[57] = 20.68;
+  Volt_level[82] = 20.24;
+  Volt_level[31] = 19.71;
+  Volt_level[47] = 19.29;
+  Volt_level[59] = 18.75;
+  Volt_level[86] = 18.25;
+  Volt_level[106] = 17.72;
+  Volt_level[79] = 17.21;
+  Volt_level[93] = 16.71;
+  Volt_level[118] = 16.17;
+  Volt_level[95] = 15.66;
+  Volt_level[123] = 15.19;
+  Volt_level[126] = 15.03;
+  Volt_level[127] = 14.34;
+  Volt_level[255] = 12.43;          
 }
 
 void Assignment_Out()

@@ -99,10 +99,10 @@ class AD5933 {
 		long B_Prev;
 		long Bio_impedance;
 		long BioImpedance;
-		float EC3 = -0.524;
-		float EC1 = -1.1952;
-		float EC2 = -0.6712;
-		float EC4 = -0.2902;
+		float EC3 = -0.7933;
+		float EC1 = -0.3671;
+		float EC2 = -1.143;
+		float EC4 = -0.4906;
 		int Stage;
 		int _Stage ;
 		int St;
