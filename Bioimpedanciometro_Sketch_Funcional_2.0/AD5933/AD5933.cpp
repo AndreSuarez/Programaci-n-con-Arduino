@@ -68,20 +68,20 @@ void AD5933::Value_Imp()
     
     if(conf == 1)
     { 
-      digitalWrite(6,HIGH);
+      digitalWrite(2,HIGH);
       Taking_Data();
       Set_CR1(Rst);
     } 
     
     if((conf == 3)||(conf==5)||(conf==7))
     { 
-      digitalWrite(6,LOW);      
+      digitalWrite(2,LOW);      
       Taking_Data();
       
     } 
     if(conf == 9)
     { 
-      digitalWrite(6,LOW);      
+      digitalWrite(2,LOW);      
       Taking_Data();
     }     
     conf++; 
@@ -91,7 +91,7 @@ void AD5933::Value_Imp()
 
 void Program_Port()
 {
-  pinMode(6, OUTPUT);
+  pinMode(2, OUTPUT);
 }
 
 void AD5933::Taking_Data ()
