@@ -26,7 +26,7 @@ y 1 para escribir).
 #define Gain_X1        0x01        // Establecimiento de Ganancia en un Factor de x1
 #define Port_OutD      0x40        // Puertos de Salida D
 #define Port_OutC      0x03        // Puertos de Salida C
-#define Rst          0x01        // Reset para comenzar el sensado de la Z desconocida sin desenergizar   
+#define Rst            0x01        // Reset para comenzar el sensado de la Z desconocida sin desenergizar   
 
                         /* Bytes de Registros */
                         
@@ -87,7 +87,7 @@ float EC1 = -0.3671;
 float EC2 = -1.143;
 float EC4 = -0.4906;
 int Stage = 0;
-int SW = 6;
+int SW = 2;
  
 void setup() 
 {

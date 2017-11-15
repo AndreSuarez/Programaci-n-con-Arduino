@@ -106,6 +106,7 @@ class AD5933 {
 		int Stage;
 		int _Stage ;
 		int St;
+		int SW = 2;
 		
 };
 

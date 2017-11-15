@@ -21,6 +21,7 @@ AD5933::AD5933(int St)
 long AD5933::impedance ()
 { 
    conf=0;
+   Program_Port();
    Imp_Teor();
    BioImpedance = Bio_impedance;
    return BioImpedance;
@@ -68,20 +69,20 @@ void AD5933::Value_Imp()
     
     if(conf == 1)
     { 
-      digitalWrite(2,HIGH);
+      digitalWrite(SW, HIGH);
       Taking_Data();
       Set_CR1(Rst);
     } 
     
     if((conf == 3)||(conf==5)||(conf==7))
     { 
-      digitalWrite(2,LOW);      
+      digitalWrite(SW, LOW);      
       Taking_Data();
       
     } 
     if(conf == 9)
     { 
-      digitalWrite(2,LOW);      
+      digitalWrite(SW, LOW);      
       Taking_Data();
     }     
     conf++; 
@@ -89,9 +90,9 @@ void AD5933::Value_Imp()
 
 }
 
-void Program_Port()
+void AD5933::Program_Port()
 {
-  pinMode(2, OUTPUT);
+  pinMode(SW, OUTPUT);
 }
 
 void AD5933::Taking_Data ()

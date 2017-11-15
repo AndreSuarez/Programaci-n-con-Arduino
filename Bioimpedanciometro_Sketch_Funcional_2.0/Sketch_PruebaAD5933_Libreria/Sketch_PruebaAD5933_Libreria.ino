@@ -22,7 +22,6 @@ void loop()
     int Impedance = Bio.impedance();
     Serial.println("La Bioimpedancia es: ");
     Serial.println(Impedance);
-    Serial.println(" ");
   } 
 }
 
