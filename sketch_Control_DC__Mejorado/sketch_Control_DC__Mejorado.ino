@@ -12,7 +12,7 @@ float Volt_level[255];
 int a;
 float Volt_Comp;
 float Volt_Prev = 5;
-float Vt = 18;
+float Vt = 34;
 byte Volt_Chosen;
 int Ch_Out[8];
 word Stage_Out[8];
