@@ -29,11 +29,9 @@ int Vrms;                         // Valor Vrms calculado con los datos ingresad
 int Vamp;                         // Valor DC requerido a la salida de la fuente conmutada
 int Frecuency;                    // Frecuencia de Modulacion       
 int Data_Value[2];                // Matriz de Datos obtenidos del sistema via I2C
+int Comp = 1;
 
 void setup() {                    
-
-  Assignment_Out();               // Asignacion de los valores de la matriz de salida con los puertos fisicos de salida
-  Selection_Volt();
   
   pinMode(Pwr_Stage1, OUTPUT);
   pinMode(Pwr_Stage2, OUTPUT);
@@ -418,9 +416,11 @@ void Calc_Power (int P_Value, int B_Value, int T_Value)
 }
 
 void Comparate_Stage(int VoltIn)                          // Etapa de eleccion de tension correspodiente a colocar a la salida de la fuente conmutada
-{    
+{   
+  Selection_Volt();   
   Voltage_Compare(Volt_Value);
   Matrix_Out(Volt_Chosen);
+  Assignment_Out();               // Asignacion de los valores de la matriz de salida con los puertos fisicos de salida
   Act_Out();  
 }
 
@@ -434,19 +434,14 @@ void Voltage_Compare(int Volt_Ref)
       Volt_Prev = Volt_Comp;                    // Valor elegido mas cercano
       Volt_Chosen = byte(i);                    // Ubicacion del valor elegido en la matriz de valores disponibles
     }
-    else 
-    {
-      Volt_Prev = Volt_Prev;
-      Volt_Chosen = Volt_Chosen;
-    }
   }  
 }
 
-void Matrix_Out (byte Selection_Out)
+void Matrix_Out (byte Selection_Out)           // Conversion de dato binario o bits a datos individual en una matriz
 {
-  for (int j=0; j <= 7; j++)                    // Conversion de dato binario o bits a datos individual en una matriz  
-  {
-    Ch_Out[j] = Selection_Out >> j; 
+  for (int j=0; j <= 7; j++)
+  {                      
+    Ch_Out[j] = (Selection_Out >> j)&(Comp); 
   }  
 }
 
