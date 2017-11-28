@@ -182,11 +182,11 @@ void Periodo_Util (int Signal_Type)                         // Obtencion del per
   }
   else if(Signal_Type == 2)
   {
-    FrecC_Util = 90/100;  
+    FrecC_Util = 95/100;  
   }
   else if(Signal_Type == 3)
   {
-    FrecC_Util = 85/100;  
+    FrecC_Util = 90/100;  
   }
   else if(Signal_Type == 4)
   {
