@@ -1,8 +1,8 @@
 
 #include <Wire.h>
 
-#define Pwr_Stage1  9   // Se le dio este roden para identificar fisicamente en la placa las secciones activadas
-#define Pwr_Stage2  A0  // Sin embargo su cambio solo implica movimientos estructurales en el codigo 
+#define Pwr_Stage1  9              // Se le dio este roden para identificar fisicamente en la placa las secciones activadas
+#define Pwr_Stage2  A0             // Sin embargo su cambio solo implica movimientos estructurales en el codigo 
 #define Pwr_Stage3  A1
 #define Pwr_Stage4  8
 #define Pwr_Stage5  4
@@ -12,7 +12,8 @@
 
 int Power_Rcv = 0;                // Dato de potencia requerida por la pantalla
 int Power_Value = 0;              // *Valor de potencia en Watts traducida del valor asociado en la pantalla tactil requerido para calculo de Tension de Salida
-int Power_Data;                   // Valor de potencia para asignarlo a la etapa correcta    
+int Ciclo_Value = 0;              // Valor de Tipo de Corte o Coagulacion asignado desde la pantalla
+int C_util;                       // Valor del Ciclo util asignado a partir del tipo de corte o coagulacion asignado
 int Bio_Value = 0;                // Valor de bioimpedancia recibido para calcular la tension a colocar      
 int Volt_Value;                   // *Valor de tension obtenido a partir de los datos de Bioimpedancia y Potencia desde  la pantalla requerido para calculo de Tension de Salida
 int Tutil;                        // Valor extraido del dato recopilado de la frecuencia de Modulacion
@@ -27,12 +28,13 @@ int Stage_Out[8];                 // Valores a colocar en alto o bajo para las s
 int Val;                          // Valor intermedio calculo de tension, solo de apoyo
 int Vrms;                         // Valor Vrms calculado con los datos ingresados     
 int Vamp;                         // Valor DC requerido a la salida de la fuente conmutada
-int Frecuency;                    // Frecuencia de Modulacion       
-int Data_Value[2];                // Matriz de Datos obtenidos del sistema via I2C
+int FrecC_Util;                    // Frecuencia de Modulacion elegida dependiendo del tipo de corte      
+int Data_Value[3];                // Matriz de Datos obtenidos del sistema via I2C
 int Comp = 1;
 
 void setup() {                    
-  
+
+  Wire.begin(9);                // join i2c bus with address #8
   pinMode(Pwr_Stage1, OUTPUT);
   pinMode(Pwr_Stage2, OUTPUT);
   pinMode(Pwr_Stage3, OUTPUT);
@@ -47,29 +49,39 @@ void loop() {
 
   while(Power_Rcv == 0)            // Primera etapa, recopilacion de datos de Potencia proveniente de la Pantalla
   {
+    b = 0;
     Wire.onReceive(receiveEvent); // register event
-    if(Power_Data > 0)
+    if(Power_Value > 0)
     {
       Power_Rcv = 1;
-      b = 1;
     }
   }
 
   while(Power_Rcv == 1)            // Segunda etapa, recopilacion de datos del Bioimpedanciometro
   {
+    b = 1;
     Wire.onReceive(receiveEvent); // register event
     if(Bio_Value > 0)
     {
       Power_Rcv = 2;
-      b = 0;
+      
     }
   }
 
-  while(Power_Rcv == 2)            // Tercera etapa, procesamiento de datos recopilados y posterior salidas fisicas
+  while(Power_Rcv == 2)            // Primera etapa, recopilacion de datos de Potencia proveniente de la Pantalla
   {
-    Power_Stage(Power_Data);                         // Funcion de asignacion de potencia en Watts         
-    Periodo_Util(Frecuency);                         // Funcion de calculo de ciclo util        
-    Calc_Power(Power_Value, Bio_Value, Tutil);       // Funcion de calculo de tension para la salida previa de la fuente conmutada           
+    b = 2;
+    Wire.onReceive(receiveEvent); // register event
+    if(Ciclo_Value > 0)
+    {
+      Power_Rcv = 3;
+    }
+  }  
+
+  while(Power_Rcv == 3)            // Tercera etapa, procesamiento de datos recopilados y posterior salidas fisicas
+  {         
+    Periodo_Util(Ciclo_Value);                         // Funcion de calculo de ciclo util        
+    Calc_Power(Power_Value, Bio_Value, C_util);       // Funcion de calculo de tension para la salida previa de la fuente conmutada           
     Comparate_Stage(Volt_Value);                     // Funcion de calculo de resistencia y asignacion de canales activados para el valor de tension requerido    
   }
 }
@@ -145,273 +157,58 @@ void receiveEvent(int howMany) {
   }
   if(b == 0)
   {
-    Power_Data = Data_Value[b];
+    Power_Value = Data_Value[b];
   }
   else if(b == 1)
   {
     Bio_Value = Data_Value[b];
   }
+  else if(b == 2)
+  {
+    Ciclo_Value = Data_Value[b];
+  }  
   else
   {
     Serial.println("Error de Serie");
   }
 }
 
-void Power_Stage (int P_Data)                            // Etapa de subdivision de los rangos de comparacion para los datos de la Pantalla
+
+void Periodo_Util (int Signal_Type)                         // Obtencion del periodo del ciclo util de la onda de modulacion          
 {
-  if((P_Data > 0)&&(P_Data <= 20))
+  if(Signal_Type == 1)
   {
-    Choose_Pot1(P_Data);  
+    FrecC_Util = 1;  
   }
-  else if((P_Data > 20)&&(P_Data <= 40))
+  else if(Signal_Type == 2)
   {
-    Choose_Pot2(P_Data);      
+    FrecC_Util = 90/100;  
   }
-  else if((P_Data > 40)&&(P_Data <= 60))
+  else if(Signal_Type == 3)
   {
-    Choose_Pot3(P_Data);      
+    FrecC_Util = 85/100;  
   }
-  else if((P_Data > 60)&&(P_Data <= 80))
+  else if(Signal_Type == 4)
   {
-    Choose_Pot4(P_Data);      
+    FrecC_Util = 80/100;  
   }
-  else if((P_Data > 80)&&(P_Data <= 100))
+  else if(Signal_Type == 5)
   {
-    Choose_Pot5(P_Data);      
-  }  
+    FrecC_Util = 75/100;  
+  }
+  else if(Signal_Type = 6)
+  {
+    FrecC_Util = 70/100;  
+  } 
+  
+  C_util = 1/FrecC_Util;
 }
 
-void Choose_Pot1 (int Pot_Comp)                           // Comparador #1  
-{
-  if((Pot_Comp == 1)||(Pot_Comp == 2))
-  {
-    Power_Value = 50;    
-  }
-  else if((Pot_Comp == 3)||(Pot_Comp == 4))
-  {
-    Power_Value = 51;    
-  }
-  else if((Pot_Comp == 5)||(Pot_Comp == 6))
-  {
-    Power_Value = 52;    
-  }
-  else if((Pot_Comp == 7)||(Pot_Comp == 8))
-  {
-    Power_Value = 53;    
-  }
-  else if((Pot_Comp == 9)||(Pot_Comp == 10))
-  {
-    Power_Value = 54;    
-  }
-  else if((Pot_Comp == 11)||(Pot_Comp == 12))
-  {
-    Power_Value = 55;    
-  }
-  else if((Pot_Comp == 13)||(Pot_Comp == 14))
-  {
-    Power_Value = 56;    
-  }
-  else if((Pot_Comp == 15)||(Pot_Comp == 16))
-  {
-    Power_Value = 57;    
-  }
-  else if((Pot_Comp == 17)||(Pot_Comp == 18))
-  {
-    Power_Value = 58;    
-  }
-  else if((Pot_Comp == 19)||(Pot_Comp == 20))
-  {
-    Power_Value = 59;    
-  }  
-}
-
-void Choose_Pot2 (int Pot_Comp)                             // Comparador #2
-{
-  if((Pot_Comp == 21)||(Pot_Comp == 22))
-  {
-    Power_Value = 60;    
-  }
-  else if((Pot_Comp == 23)||(Pot_Comp == 24))
-  {
-    Power_Value = 61;    
-  }
-  else if((Pot_Comp == 25)||(Pot_Comp == 26))
-  {
-    Power_Value = 62;    
-  }
-  else if((Pot_Comp == 27)||(Pot_Comp == 28))
-  {
-    Power_Value = 63;    
-  }
-  else if((Pot_Comp == 29)||(Pot_Comp == 30))
-  {
-    Power_Value = 64;    
-  }
-  else if((Pot_Comp == 31)||(Pot_Comp == 32))
-  {
-    Power_Value = 65;    
-  }
-  else if((Pot_Comp == 33)||(Pot_Comp == 34))
-  {
-    Power_Value = 66;    
-  }
-  else if((Pot_Comp == 35)||(Pot_Comp == 36))
-  {
-    Power_Value = 67;    
-  }
-  else if((Pot_Comp == 37)||(Pot_Comp == 38))
-  {
-    Power_Value = 68;    
-  }
-  else if((Pot_Comp == 39)||(Pot_Comp == 40))
-  {
-    Power_Value = 69;    
-  }   
-}
-
-void Choose_Pot3 (int Pot_Comp)                                   // Comparador #3
-{
-  if((Pot_Comp == 41)||(Pot_Comp == 42))
-  {
-    Power_Value = 70;    
-  }
-  else if((Pot_Comp == 43)||(Pot_Comp == 44))
-  {
-    Power_Value = 71;    
-  }
-  else if((Pot_Comp == 45)||(Pot_Comp == 46))
-  {
-    Power_Value = 72;    
-  }
-  else if((Pot_Comp == 47)||(Pot_Comp == 48))
-  {
-    Power_Value = 73;    
-  }
-  else if((Pot_Comp == 49)||(Pot_Comp == 50))
-  {
-    Power_Value = 74;    
-  }
-  else if((Pot_Comp == 51)||(Pot_Comp == 52))
-  {
-    Power_Value = 75;    
-  }
-  else if((Pot_Comp == 53)||(Pot_Comp == 54))
-  {
-    Power_Value = 76;    
-  }
-  else if((Pot_Comp == 55)||(Pot_Comp == 56))
-  {
-    Power_Value = 77;    
-  }
-  else if((Pot_Comp == 57)||(Pot_Comp == 58))
-  {
-    Power_Value = 78;    
-  }
-  else if((Pot_Comp == 59)||(Pot_Comp == 60))
-  {
-    Power_Value = 79;    
-  }   
-}
-
-void Choose_Pot4 (int Pot_Comp)                                 // Comparador #4    
-{
-  if((Pot_Comp == 61)||(Pot_Comp == 62))
-  {
-    Power_Value = 80;    
-  }
-  else if((Pot_Comp == 63)||(Pot_Comp == 64))
-  {
-    Power_Value = 81;    
-  }
-  else if((Pot_Comp == 65)||(Pot_Comp == 66))
-  {
-    Power_Value = 82;    
-  }
-  else if((Pot_Comp == 67)||(Pot_Comp == 68))
-  {
-    Power_Value = 83;    
-  }
-  else if((Pot_Comp == 69)||(Pot_Comp == 70))
-  {
-    Power_Value = 84;    
-  }
-  else if((Pot_Comp == 71)||(Pot_Comp == 72))
-  {
-    Power_Value = 85;    
-  }
-  else if((Pot_Comp == 73)||(Pot_Comp == 74))
-  {
-    Power_Value = 86;    
-  }
-  else if((Pot_Comp == 75)||(Pot_Comp == 76))
-  {
-    Power_Value = 87;    
-  }
-  else if((Pot_Comp == 77)||(Pot_Comp == 78))
-  {
-    Power_Value = 88;    
-  }
-  else if((Pot_Comp == 79)||(Pot_Comp == 80))
-  {
-    Power_Value = 89;    
-  }   
-}
-
-
-void Choose_Pot5 (int Pot_Comp)                              // Comparador #5  
-{
-  if((Pot_Comp == 81)||(Pot_Comp == 82))
-  {
-    Power_Value = 90;    
-  }
-  else if((Pot_Comp == 83)||(Pot_Comp == 84))
-  {
-    Power_Value = 91;    
-  }
-  else if((Pot_Comp == 85)||(Pot_Comp == 86))
-  {
-    Power_Value = 92;    
-  }
-  else if((Pot_Comp == 87)||(Pot_Comp == 88))
-  {
-    Power_Value = 93;    
-  }
-  else if((Pot_Comp == 89)||(Pot_Comp == 90))
-  {
-    Power_Value = 94;    
-  }
-  else if((Pot_Comp == 91)||(Pot_Comp == 92))
-  {
-    Power_Value = 95;    
-  }
-  else if((Pot_Comp == 93)||(Pot_Comp == 94))
-  {
-    Power_Value = 96;    
-  }
-  else if((Pot_Comp == 95)||(Pot_Comp == 96))
-  {
-    Power_Value = 97;    
-  }
-  else if((Pot_Comp == 97)||(Pot_Comp == 98))
-  {
-    Power_Value = 98;    
-  }
-  else if((Pot_Comp == 99)||(Pot_Comp == 100))
-  {
-    Power_Value = 99;    
-  }   
-}
-
-void Periodo_Util (int FrecC_Util)                         // Obtencion del periodo del ciclo util de la onda de modulacion          
-{
-  Tutil = 1/FrecC_Util;
-}
-
-void Calc_Power (int P_Value, int B_Value, int T_Value)
+void Calc_Power (int P_Value, int B_Value, int Cycle_Value)
 {
   Val = Bio_Value * P_Value;                               // Si no se quiere manejar el valor del Bioimpedanciometro Z se coloca como un valor estandar en lugar de como una entrada 
   Vrms = sqrt(Val);
-  Vamp = Vrms * (sqrt(2*T_Value));                         // Los valores de Factor de uso Fac_Use se calcularon al obtener la formula Vrms = Vamp/(sqrt(2*Tciclo util))   
+  Vamp = Vrms/(sqrt(2*Cycle_Value));                         // Los valores de Factor de uso Fac_Use se calcularon al obtener la formula Vrms = Vamp/(sqrt(2*Tciclo util))   
   Volt_Value = Vamp;
 }
 
