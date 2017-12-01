@@ -52,11 +52,17 @@ byte Imag_Data2    = 0x97;        // Byte 2 dato Imaginario
 
                       /* Datos a Ingresar */
                       
-int i ;                            // Valor del ciclo en proceso   
-int j = 0;                         // Valor de la etapa (numero de sensado)
-int h = 0;                         // Variable para la matriz de almacenamiento final de datos  
-int conf;                          // Valor de Estado del Ciclo (Todo el proceso se puede colocar en el void setup pues sera realizado una sola vez)
-int State;                         // Dato de confirmacion para lectura de registros 
+int a;                            // Valor de comparacion para una resistencia muy grande
+int b;                            // Valor de comparacion para una resistencia medible
+int i;                            // Valor del ciclo en proceso   
+int j = 0;                        // Valor de la etapa (numero de sensado)
+int h;                            // Valor para el numero de veces valido, por el cual se establece una impedancia o muy grande o medible
+int k;                            // Este reemplaza a j en el barrido previo al sensado
+int m = 0;                        // Valor para hallar el promedio de las magnitudes sensadas
+int n = 0;                        // Valor para sacar del estado donde salen magnitudes medibles pero deja repentinamente en circuito abierto en medio del proceso
+int conf = 0;                     // Valor de Estado del Ciclo (Todo el proceso se puede colocar en el void setup pues sera realizado una sola vez)
+int Prev_State = 0;               // Proceso para evitar demorarse en resistencias demasiado grandes
+int State;                        // Dato de confirmacion para lectura de registros 
 int Reg_Data[4]= {Real_Data1, Real_Data2, Imag_Data1, Imag_Data2};  // Matriz de direccion de datos (Reales e Imaginarios)
 int Dato[4];                       // Matriz acomuladora de datos (Reales e Imaginarios)
 int Valid_Sweep;
@@ -71,22 +77,22 @@ byte IF_med;                       // Byte medio del dato de incremento de frecu
 byte IF_upper;                     // Byte mayor del dato de incremento de frecuencia a ingresar 
 byte NI_lower;                     // Byte menor del dato del numero de incrementos de frecuencia a ingresar 
 byte NI_upper;                     // Byte mayor del dato del numero de incrementos de frecuencia a ingresar
+int Dato_Real[9];
 int Dato_R;
 int Dato_I;  
 long Mag_Prev;
-long Magnitude_Data;
 long Magnitude[3];
-long Mag[5];
+long Mag[3];
 long Valf_Mag;
 word Gain_Ref;
 byte Cycles = 0x14;
 int Rref = 470;
 long B_Prev;
 long Bio_impedance;
-float EC3 = -0.7933;
-float EC1 = -0.3671;
-float EC2 = -1.143;
-float EC4 = -0.4906;
+float EC3 = -0.5553;
+float EC1 = -2.7232;
+float EC2 = -0.9145;
+float EC4 = -0.2034;
 int Stage = 0;
 int SW = 2;
  
@@ -122,26 +128,34 @@ void Imp_Teor ()
 {
 
   Value_Imp();
-  B_Prev = (Valf_Mag * EC3)+ 11637;
-  if(B_Prev < 293)
+  B_Prev = (Valf_Mag * EC3)+11538 ;
+  if(B_Prev <= 330)
   {
-    Bio_impedance = (Valf_Mag * EC1)+ 5485.9;
-  }
-  else if((B_Prev < 561)&&(B_Prev > 293))
+    Bio_impedance = 0;
+  }  
+  else if((B_Prev <= 392)&&(B_Prev > 330))
   {
-    Bio_impedance = (Valf_Mag * EC2)+ 16544;    
+    Bio_impedance = (Valf_Mag * EC1)+ 54948;
   }
-  else if(B_Prev > 790)
+  else if((B_Prev <= 548)&&(B_Prev > 392))
   {
-    Bio_impedance = (Valf_Mag * EC4)+ 7538.4;    
+    Bio_impedance = (Valf_Mag * EC2)+ 18644;    
   }
+  else if((B_Prev >= 799)&&(B_Prev < 3000))
+  {
+    Bio_impedance = (Valf_Mag * EC4)+ 4745.7;    
+  }
+  else if(B_Prev >= 3000)
+  {
+    Bio_impedance = 10000;    
+  }  
   else
   {
     Bio_impedance = B_Prev;
   }
-//  Serial.print("Valor de Bioimpedancia: ");
-//  Serial.print(Bio_impedance);
-//  Serial.println(" Ohms");
+  Serial.print("Valor de Bioimpedancia: ");
+  Serial.print(Bio_impedance);
+  Serial.println(" Ohms");
   Stage = 1;
 }
 
@@ -150,9 +164,9 @@ void Imp_Teor ()
 void Value_Imp()
 {
 
-  while(conf<10)
+  while(conf<6)
   {
-    if((conf==0)||(conf==2)||(conf==4)||(conf==6)||(conf==8))
+    if((conf==0)||(conf==2)||(conf==4)||(conf==6))
     {
       Init_Command();
       delay(14);
@@ -169,16 +183,9 @@ void Value_Imp()
     { 
       digitalWrite(SW, LOW);      
       Taking_Data();
-      
-    } 
-    if(conf == 9)
-    { 
-      digitalWrite(SW, LOW);      
-      Taking_Data();
-    }     
-    conf++; 
+    }
+    conf++;      
   } 
-
 }
 
 void Program_Port()
@@ -201,26 +208,35 @@ void Taking_Data ()
       if(i==3)
       {
         Set_CR(Incr_Frequency);
-        Mag_Data();
-        j++;
-        if(j==3)
+        if(Prev_State == 0)
         {
+          Valid_Data(); 
+        }
+        else if(Prev_State == 1)
+        {         
+          Mag_Data2(); 
+        }
+        else if(Prev_State == 2)
+        {               
+          Mag_Data1();          
+        }
+        if(j==3)                                        
+        {                                                
           AddressPointer(Status);
           ReadCommand_Status();
           Valid_Sweep = (State & 0x04);   
           if(Valid_Sweep == FS_Valid)
           {
-            Mag[h] = (Magnitude[0]+ Magnitude[1]+Magnitude[2])/3;
-            Conf_State =  0x00;
-            j=0;
-            if(h==4)
+            Mag[m] = (Magnitude[0]+ Magnitude[1]+Magnitude[2])/3;
+            if(conf > 1)
             {
-              Valf_Mag = (Mag[1]+ Mag[2]+ Mag[3]+ Mag[4])/4;
-              Serial.println("Valf_Mag");
-              Serial.println(Valf_Mag);
-              h=0;
+              Add_Prom();
             }
-            h++;
+            Conf_State =  0x00;
+            Prev_State = 0;
+            j=0;
+            a=0;
+            b=0;
           }
         }  
       }      
@@ -359,19 +375,95 @@ void ReadCommand_Status ()          // Lee unicamente el registro de Estado para
   delay(10);
 }
 
-void Mag_Data ()
+void Mag_Data1 ()
 {
   Dato_R = (Dato[0]<<8)|(Dato[1]);
-  Dato_I = (Dato[2]<<8)|(Dato[3]);
-  Serial.println("Dato_R");
-  Serial.println(Dato_R);
-  Serial.println("Dato_I");
-  Serial.println(Dato_I);
+  Dato_I = (Dato[2]<<8)|(Dato[3]);   
   Mag_Prev = (pow(Dato_R,2))+(pow(Dato_I,2));
-  Magnitude[j] = sqrt(Mag_Prev);
-  Serial.println(Magnitude[j]);
-
+  Magnitude[j] = sqrt(Mag_Prev); 
+  if(Magnitude[j] >= 8000)
+  {
+    j++;
+  }
+  if(Magnitude[j]<=1000)
+  {
+    n++;
+    if(n == 3)
+    {
+      Prev_State = 0;
+      a=0;
+      b=0;
+      n=0;
+      j=0;
+      conf = 1;
+    }
+  }
 }
+
+void Mag_Data2 ()
+{
+  Magnitude[0] = 8000;
+  Magnitude[1] = 8000;
+  Magnitude[2] = 8000;  
+  j = 3;  
+}
+
+void Valid_Data ()
+{
+  Dato_Real[h] = (Dato[0]<<8)|(Dato[1]);
+  if(Dato_Real[h] <= 1000)
+  {
+    a++;     
+  }
+  else if(Dato_Real[h] > 1000)
+  {
+    b++;     
+  }
+  k++;
+  if(k==3)
+  {        
+    AddressPointer(Status);
+    ReadCommand_Status();
+    Valid_Sweep = (State & 0x04);
+      if(Valid_Sweep == FS_Valid)
+      {
+        Conf_State =  0x00;
+        k=0;
+      }       
+  }   
+  h++;
+  if(h == 6)
+  {
+    if(a >= b)
+    {
+      Prev_State = 1;
+      h=0;   
+    }
+    else if(a < b)
+    {
+      Prev_State = 2;
+      h=0;    
+    }
+  }
+}
+
+void Add_Prom ()
+{
+  m++;
+  if(m == 3)
+  {
+    Valf_Mag = (Mag[0]+Mag[1]+Mag[2])/3;
+    m=0;  
+  }
+}
+
+
+
+
+
+
+
+
 
 
 

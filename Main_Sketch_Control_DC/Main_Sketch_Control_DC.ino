@@ -11,19 +11,18 @@ void setup()
 
 void loop() 
 {
-  while(State_DC == 0)
-  {
-    Wire.beginTransmission(9); // transmit to device #9
-    Wire.write(Bio_Val);              // sends one byte
-    Wire.endTransmission();    // stop transmitting
-    State_DC = true;
-  }
-  
-  while(State_DC == 1)
-  {
-    Wire.beginTransmission(9); // transmit to device #9
-    Wire.write(Pot_Val);              // sends one byte
-    Wire.endTransmission();    // stop transmitting
-    State_DC = false;
-  }  
+  Wire.beginTransmission(9); // transmit to device #9
+  Wire.write(Pot_Val);              // sends one byte
+  Wire.endTransmission();    // stop transmitting
+
+
+  Wire.beginTransmission(9); // transmit to device #9
+  Wire.write(Bio_Val);              // sends one byte
+  Wire.endTransmission();    // stop transmitting
+
+ 
+  Wire.beginTransmission(9); // transmit to device #9
+  Wire.write(Ciclo_Val);              // sends one byte
+  Wire.endTransmission();    // stop transmitting
+
 }
