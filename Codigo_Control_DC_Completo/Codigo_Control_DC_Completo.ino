@@ -8,14 +8,16 @@
 #define Pwr_Stage5  4
 #define Pwr_Stage6  3
 #define Pwr_Stage7  A2
-#define Pwr_Stage8  A3
+#define Pwr_Stage8  A3 
 
-int Power_Rcv = 0;                // Dato de potencia requerida por la pantalla
-int Power_Value = 0;              // *Valor de potencia en Watts traducida del valor asociado en la pantalla tactil requerido para calculo de Tension de Salida
-int Ciclo_Value = 0;              // Valor de Tipo de Corte o Coagulacion asignado desde la pantalla
-int C_util;                       // Valor del Ciclo util asignado a partir del tipo de corte o coagulacion asignado
-int Bio_Value = 0;                // Valor de bioimpedancia recibido para calcular la tension a colocar      
-int Volt_Value;                   // *Valor de tension obtenido a partir de los datos de Bioimpedancia y Potencia desde  la pantalla requerido para calculo de Tension de Salida
+long Pot_Value;              // *Valor de potencia en Watts traducida del valor asociado en la pantalla tactil requerido para calculo de Tension de Salida
+int Ciclo_Value;              // Valor de Tipo de Corte o Coagulacion asignado desde la pantalla
+float C_util;                       // Valor del Ciclo util asignado a partir del tipo de corte o coagulacion asignado
+long Bio_Value;                   // Valor de bioimpedancia recibido para calcular la tension a colocar 
+int Bio_ValF_Prev;                // Valor impedancia previo  
+int Bio_ValF;                     // Bits mas significativos del valor de Bioimpedancia
+int Bio_ValS;                     // Bits menos significativos del valor de Bioimpedancia
+float Volt_Value;                 // *Valor de tension obtenido a partir de los datos de Bioimpedancia y Potencia desde  la pantalla requerido para calculo de Tension de Salida
 int Tutil;                        // Valor extraido del dato recopilado de la frecuencia de Modulacion
 int T_Value;                      // *Valor de periodo requerido para calculo de Tension de Salida   
 int Volt_level[256];              // Matriz de valores de tension Elegibles   
@@ -25,15 +27,17 @@ int Volt_Prev = 5;                // Valor de inicial comparacion para obtener l
 byte Volt_Chosen;                 // Voltaje elegido en el proceso de comparacion hecho
 int Ch_Out[8];                    // Matriz de conversion de la salida en bits a valores individuales
 int Stage_Out[8];                 // Valores a colocar en alto o bajo para las salidas digitales/analogicas 
-int Val;                          // Valor intermedio calculo de tension, solo de apoyo
-int Vrms;                         // Valor Vrms calculado con los datos ingresados     
-int Vamp;                         // Valor DC requerido a la salida de la fuente conmutada
-int FrecC_Util;                    // Frecuencia de Modulacion elegida dependiendo del tipo de corte      
-int Data_Value[3];                // Matriz de Datos obtenidos del sistema via I2C
+long Val;                          // Valor intermedio calculo de tension, solo de apoyo
+long Vrms;                         // Valor Vrms calculado con los datos ingresados     
+float Vamp;                         // Valor DC requerido a la salida de la fuente conmutada
+float FrecC_Util;                    // Frecuencia de Modulacion elegida dependiendo del tipo de corte      
+int Data_Value[5];                // Matriz de Datos obtenidos del sistema via I2C
 int Comp = 1;
+int Pass_Value;
 
 void setup() {                    
 
+  Serial.begin(9600);
   Wire.begin(9);                // join i2c bus with address #8
   pinMode(Pwr_Stage1, OUTPUT);
   pinMode(Pwr_Stage2, OUTPUT);
@@ -46,43 +50,16 @@ void setup() {
 }
 
 void loop() { 
-
-  while(Power_Rcv == 0)            // Primera etapa, recopilacion de datos de Potencia proveniente de la Pantalla
+  
+  Wire.onReceive(receiveEvent); // register event
+  
+  if(Pass_Value == 1)
   {
-    b = 0;
-    Wire.onReceive(receiveEvent); // register event
-    if(Power_Value > 0)
-    {
-      Power_Rcv = 1;
-    }
-  }
-
-  while(Power_Rcv == 1)            // Segunda etapa, recopilacion de datos del Bioimpedanciometro
-  {
-    b = 1;
-    Wire.onReceive(receiveEvent); // register event
-    if(Bio_Value > 0)
-    {
-      Power_Rcv = 2;
-      
-    }
-  }
-
-  while(Power_Rcv == 2)            // Primera etapa, recopilacion de datos de Potencia proveniente de la Pantalla
-  {
-    b = 2;
-    Wire.onReceive(receiveEvent); // register event
-    if(Ciclo_Value > 0)
-    {
-      Power_Rcv = 3;
-    }
-  }  
-
-  while(Power_Rcv == 3)            // Tercera etapa, procesamiento de datos recopilados y posterior salidas fisicas
-  {         
+    Bio_Function();
     Periodo_Util(Ciclo_Value);                         // Funcion de calculo de ciclo util        
-    Calc_Power(Power_Value, Bio_Value, C_util);       // Funcion de calculo de tension para la salida previa de la fuente conmutada           
-    Comparate_Stage(Volt_Value);                     // Funcion de calculo de resistencia y asignacion de canales activados para el valor de tension requerido    
+    Calc_Power(Pot_Value, Bio_Value, C_util);       // Funcion de calculo de tension para la salida previa de la fuente conmutada           
+    Comparate_Stage(Volt_Value);                     // Funcion de calculo de resistencia y asignacion de canales activados para el valor de tension requerido  
+    Pass_Value = 0;
   }
 }
 
@@ -150,27 +127,44 @@ void Assignment_Out()
 }
 
 void receiveEvent(int howMany) {
-  while (1 < Wire.available())    // loop through all but the last
-  {                               
-    Data_Value[b] = Wire.read();      // receive a byte as character
-    Serial.print(Power_Value);              // print the character
+  while (0 < Wire.available()) { // loop through all but the last
+
+    Data_Value[b] = Wire.read(); // receive byte as a character
+    if(b < 5)
+    {
+      if(b == 0)
+      {
+        Pot_Value = Data_Value[b]; 
+      }
+      if(b == 1)
+      {
+        Bio_ValF_Prev = Data_Value[b]; 
+      }
+      if(b == 2)
+      {
+        Bio_ValS = Data_Value[b];    
+      }
+      if(b == 3)
+      {
+        Ciclo_Value = Data_Value[b];    
+      } 
+      if(b == 4)
+      {
+        Pass_Value = Data_Value[b];    
+      }                         
+      b++;    
+    }
+    else if(b >=5)
+    {
+      b = 0;
+    }
   }
-  if(b == 0)
-  {
-    Power_Value = Data_Value[b];
-  }
-  else if(b == 1)
-  {
-    Bio_Value = Data_Value[b];
-  }
-  else if(b == 2)
-  {
-    Ciclo_Value = Data_Value[b];
-  }  
-  else
-  {
-    Serial.println("Error de Serie");
-  }
+}
+
+void Bio_Function()
+{
+  Bio_ValF = (Bio_ValF_Prev << 8);
+  Bio_Value = (Bio_ValF | Bio_ValS);    
 }
 
 
@@ -182,34 +176,35 @@ void Periodo_Util (int Signal_Type)                         // Obtencion del per
   }
   else if(Signal_Type == 2)
   {
-    FrecC_Util = 95/100;  
+    FrecC_Util = 0.95;  
   }
   else if(Signal_Type == 3)
   {
-    FrecC_Util = 90/100;  
+    FrecC_Util = 0.9;  
   }
   else if(Signal_Type == 4)
   {
-    FrecC_Util = 80/100;  
+    FrecC_Util = 0.8;  
   }
   else if(Signal_Type == 5)
   {
-    FrecC_Util = 75/100;  
+    FrecC_Util = 0.75;  
   }
-  else if(Signal_Type = 6)
+  else if(Signal_Type == 6)
   {
-    FrecC_Util = 70/100;  
+    FrecC_Util = 0.7;  
   } 
-  
   C_util = 1/FrecC_Util;
 }
 
-void Calc_Power (int P_Value, int B_Value, int Cycle_Value)
-{
-  Val = Bio_Value * P_Value;                               // Si no se quiere manejar el valor del Bioimpedanciometro Z se coloca como un valor estandar en lugar de como una entrada 
+void Calc_Power (long P_Value, long B_Value, float Cycle_Value)
+{  
+  Val = Bio_Value * P_Value; 
+  Serial.println(Val);// Si no se quiere manejar el valor del Bioimpedanciometro Z se coloca como un valor estandar en lugar de como una entrada 
   Vrms = sqrt(Val);
   Vamp = Vrms/(sqrt(2*Cycle_Value));                         // Los valores de Factor de uso Fac_Use se calcularon al obtener la formula Vrms = Vamp/(sqrt(2*Tciclo util))   
-  Volt_Value = Vamp;
+  Volt_Value = Vamp/13;
+  Serial.println(Volt_Value);
 }
 
 void Comparate_Stage(int VoltIn)                          // Etapa de eleccion de tension correspodiente a colocar a la salida de la fuente conmutada

@@ -1,3 +1,4 @@
+#include <Wire.h>
 
 #define Pwr_Stage1  9   // Se le dio este roden para identificar fisicamente en la placa las secciones activadas
 #define Pwr_Stage2  A0  // Sin embargo su cambio solo implica movimientos estructurales en el codigo 
@@ -12,15 +13,18 @@ float Volt_level[255];
 int a;
 float Volt_Comp;
 float Volt_Prev = 5;
-float Vt = 34;
+byte Vt=25;
+int Data_Value;
 byte Volt_Chosen;
 int Ch_Out[8];
 word Stage_Out[8];
 byte Comp = 1;
 
 void setup() {
-  Serial.begin(9600);
   
+  Serial.begin(9600);
+  //Wire.begin(9);
+  //Wire.onReceive(receiveEvent); // register event
   pinMode(Pwr_Stage1, OUTPUT);
   pinMode(Pwr_Stage2, OUTPUT);
   pinMode(Pwr_Stage3, OUTPUT);
@@ -29,19 +33,28 @@ void setup() {
   pinMode(Pwr_Stage6, OUTPUT);
   pinMode(Pwr_Stage7, OUTPUT);
   pinMode(Pwr_Stage8, OUTPUT);
-    
+  
+  
+ 
 }
 
 void loop() {
-
-  Selection_Volt();
-  Voltage_Compare(Vt);
-  Matrix_Out(Volt_Chosen);
-  Assignment_Out();  
-  Act_Out();  
+    Assignment_Out();
+    Selection_Volt();
+    Voltage_Compare(Vt);
+    Matrix_Out(Volt_Chosen);  
+    Act_Out();  
 }
 
-void Selection_Volt ()
+
+void receiveEvent(int howMany) {
+    Vt = Wire.read(); // receive byte as a character
+    Serial.print("Vt: "); 
+    Serial.println(Vt);
+    }
+
+
+void Selection_Volt()
 {
   Volt_level[1] = 49.44;
   Volt_level[2] = 47.72;
@@ -113,6 +126,8 @@ void Voltage_Compare(int Volt_Ref)
       Volt_Prev = Volt_Comp;
       Volt_Chosen = i;  
     }
+//    Serial.println("Volt_Chosen");    
+//    Serial.println(Volt_Chosen);
   }    
 }
 
