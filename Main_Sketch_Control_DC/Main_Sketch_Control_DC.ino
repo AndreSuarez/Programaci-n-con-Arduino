@@ -1,6 +1,7 @@
 #include <Wire.h>
 
-int Bio_Value = 800;
+int Vt = 40;
+int Bio_V = 800;
 byte Bio_ValF;
 byte Bio_ValS;
 int Pot_Value= 90;
@@ -15,27 +16,24 @@ void setup()
 
 void loop() 
 {
-  
-  Bio_Comm(); 
-  Wire.beginTransmission(9); // transmit to device #9
-  Wire.write(Pot_Value);              // sends one byte
-  Wire.write(Bio_ValF);              // sends one byte
-  Wire.write(Bio_ValS);              // sends one byte
-  Wire.write(Ciclo_Value);              // sends one byte
-  Wire.write(Pass_Value);
-  Wire.endTransmission();    // stop transmitting
-  for(int i=0; i<1000; i++)
-  {
-    Serial.println("Terminado");  
+  for(int h=0; h<=10; h++)
+  {    
+  //  Bio_Comm(Bio_V); 
+    Wire.beginTransmission(9); // transmit to device #9
+    Wire.write(Vt);             // sends one byte
+  //  Wire.write(Bio_ValF);              // sends one byte
+  //  Wire.write(Bio_ValS);              // sends one byte
+  //  Wire.write(Ciclo_Value);              // sends one byte
+  //  Wire.write(Pass_Value);
+    Wire.endTransmission();    // stop transmitting
+    delay(10);
   }
 }
-
-void Bio_Comm()
+void Bio_Comm(int Bio_Value)
 { 
-  Serial.println(Bio_Value);
+  
   Bio_ValF = (Bio_Value >> 8)&(11111111);
-  Serial.println(Bio_ValF);
   Bio_ValS = Bio_Value; 
-  Serial.println(Bio_ValS); 
+  
 }
 

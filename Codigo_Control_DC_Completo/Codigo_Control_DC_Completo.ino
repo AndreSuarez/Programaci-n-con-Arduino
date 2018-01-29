@@ -22,7 +22,8 @@ int Tutil;                        // Valor extraido del dato recopilado de la fr
 int T_Value;                      // *Valor de periodo requerido para calculo de Tension de Salida   
 int Volt_level[256];              // Matriz de valores de tension Elegibles   
 int b;                            // Contador para la recopilacion de datos por I2C
-int Volt_Comp;                    // Valor de comparacion usado para determinar el dato de la Matriz de tensiones fijas mas cercano al valor de salida requerido 
+int i = 0;                        // Contador de valor de referencia    
+float Volt_Comp;                    // Valor de comparacion usado para determinar el dato de la Matriz de tensiones fijas mas cercano al valor de salida requerido 
 int Volt_Prev = 5;                // Valor de inicial comparacion para obtener la tension de comparacion correcta  
 byte Volt_Chosen;                 // Voltaje elegido en el proceso de comparacion hecho
 int Ch_Out[8];                    // Matriz de conversion de la salida en bits a valores individuales
@@ -33,7 +34,7 @@ float Vamp;                         // Valor DC requerido a la salida de la fuen
 float FrecC_Util;                    // Frecuencia de Modulacion elegida dependiendo del tipo de corte      
 int Data_Value[5];                // Matriz de Datos obtenidos del sistema via I2C
 int Comp = 1;
-int Pass_Value;
+int Pass_Value = 0;
 
 void setup() {                    
 
@@ -46,21 +47,24 @@ void setup() {
   pinMode(Pwr_Stage5, OUTPUT);  
   pinMode(Pwr_Stage6, OUTPUT);
   pinMode(Pwr_Stage7, OUTPUT);
-  pinMode(Pwr_Stage8, OUTPUT);      
+  pinMode(Pwr_Stage8, OUTPUT);
+  Assignment_Out(); 
+  Previous_State();
+  Selection_Volt();     
 }
 
 void loop() { 
   
   Wire.onReceive(receiveEvent); // register event
-  
-  if(Pass_Value == 1)
-  {
-    Bio_Function();
-    Periodo_Util(Ciclo_Value);                         // Funcion de calculo de ciclo util        
-    Calc_Power(Pot_Value, Bio_Value, C_util);       // Funcion de calculo de tension para la salida previa de la fuente conmutada           
-    Comparate_Stage(Volt_Value);                     // Funcion de calculo de resistencia y asignacion de canales activados para el valor de tension requerido  
-    Pass_Value = 0;
-  }
+  Bio_Function();
+  Serial.println(Bio_Value);
+  Serial.println(Pot_Value);
+  Serial.println(Ciclo_Value);
+  Periodo_Util(Ciclo_Value);                         // Funcion de calculo de ciclo util        
+  Calc_Power(Pot_Value, Bio_Value, C_util);       // Funcion de calculo de tension para la salida previa de la fuente conmutada           
+  Comparate_Stage(Volt_Value);                     // Funcion de calculo de resistencia y asignacion de canales activados para el valor de tension requerido 
+
+
 }
 
 void Selection_Volt ()
@@ -200,7 +204,6 @@ void Periodo_Util (int Signal_Type)                         // Obtencion del per
 void Calc_Power (long P_Value, long B_Value, float Cycle_Value)
 {  
   Val = Bio_Value * P_Value; 
-  Serial.println(Val);// Si no se quiere manejar el valor del Bioimpedanciometro Z se coloca como un valor estandar en lugar de como una entrada 
   Vrms = sqrt(Val);
   Vamp = Vrms/(sqrt(2*Cycle_Value));                         // Los valores de Factor de uso Fac_Use se calcularon al obtener la formula Vrms = Vamp/(sqrt(2*Tciclo util))   
   Volt_Value = Vamp/13;
@@ -208,12 +211,13 @@ void Calc_Power (long P_Value, long B_Value, float Cycle_Value)
 }
 
 void Comparate_Stage(int VoltIn)                          // Etapa de eleccion de tension correspodiente a colocar a la salida de la fuente conmutada
-{   
-  Selection_Volt();   
-  Voltage_Compare(Volt_Value);
+{    
+  Serial.println(VoltIn);  
+  Voltage_Compare(VoltIn);
   Matrix_Out(Volt_Chosen);
   Assignment_Out();               // Asignacion de los valores de la matriz de salida con los puertos fisicos de salida
   Act_Out();  
+  Rst_DC();
 }
 
 void Voltage_Compare(int Volt_Ref)                    
@@ -224,9 +228,10 @@ void Voltage_Compare(int Volt_Ref)
     if(Volt_Comp <= Volt_Prev)
     {
       Volt_Prev = Volt_Comp;                    // Valor elegido mas cercano
-      Volt_Chosen = byte(i);                    // Ubicacion del valor elegido en la matriz de valores disponibles
+      Volt_Chosen = i;                    // Ubicacion del valor elegido en la matriz de valores disponibles
+
     }
-  }  
+  } 
 }
 
 void Matrix_Out (byte Selection_Out)           // Conversion de dato binario o bits a datos individual en una matriz
@@ -252,5 +257,23 @@ void Act_Out()
   }    
 }
 
+void Rst_DC ()
+{
+  Volt_Prev = 5;
+  Volt_Comp = 20;
+  i=0;   
+}
+
+void Previous_State ()
+{
+    digitalWrite(Stage_Out[0], HIGH);
+    digitalWrite(Stage_Out[1], HIGH);
+    digitalWrite(Stage_Out[2], HIGH); 
+    digitalWrite(Stage_Out[3], HIGH); 
+    digitalWrite(Stage_Out[4], HIGH); 
+    digitalWrite(Stage_Out[5], HIGH); 
+    digitalWrite(Stage_Out[6], HIGH);
+    digitalWrite(Stage_Out[7], HIGH); 
+}
 
    

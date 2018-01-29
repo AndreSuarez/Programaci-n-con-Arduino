@@ -40,12 +40,36 @@ void setup() {
 }
 
 void loop() {
-    
+    Vt = 12;
     Assignment_Out();
     Selection_Volt();
     Voltage_Compare(Vt);
     Matrix_Out(Volt_Chosen);  
     Act_Out();     
+    delay(10000);
+    Vt = Vt+10;
+    Assignment_Out();
+    Selection_Volt();
+    Voltage_Compare(Vt);
+    Matrix_Out(Volt_Chosen);  
+    Act_Out();     
+    delay(10000);
+    Vt = Vt+10;
+    Assignment_Out();
+    Selection_Volt();
+    Voltage_Compare(Vt);
+    Matrix_Out(Volt_Chosen);  
+    Act_Out();     
+    delay(10000);
+    Vt = Vt+10;
+    Assignment_Out();
+    Selection_Volt();
+    Voltage_Compare(Vt);
+    Matrix_Out(Volt_Chosen);  
+    Act_Out();     
+    delay(10000);    
+    
+
     
  
 }

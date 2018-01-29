@@ -14,7 +14,7 @@ int a;
 int i=0;
 float Volt_Comp;
 float Volt_Prev = 5;
-byte Vt;
+byte Vt = 32;
 int Data_Value;
 byte Volt_Chosen;
 int Ch_Out[8];
@@ -24,7 +24,7 @@ byte Comp = 1;
 void setup() {
   
   Serial.begin(9600);
-  //Wire.begin(9);
+  Wire.begin(9);
   //Wire.onReceive(receiveEvent); // register event
   pinMode(Pwr_Stage1, OUTPUT);
   pinMode(Pwr_Stage2, OUTPUT);
@@ -40,23 +40,24 @@ void setup() {
 }
 
 void loop() {
-    
+
+    Wire.onReceive(receiveEvent); // register event
     Assignment_Out();
     Selection_Volt();
     Voltage_Compare(Vt);
     Matrix_Out(Volt_Chosen);  
-    Act_Out();     
-    
- 
+    Act_Out(); 
+    Rst_DC(); 
 }
 
 
 void receiveEvent(int howMany) {
-    Vt = Wire.read(); // receive byte as a character
-    Serial.print("Vt: "); 
-    Serial.println(Vt);
-    }
+  while (0 < Wire.available()) { // loop through all but the last
 
+   Vt = Wire.read(); // receive byte as a character
+   delay(10);
+  }
+}
 
 void Selection_Volt()
 {
@@ -128,10 +129,10 @@ void Voltage_Compare(int Volt_Ref)
     if(Volt_Comp <= Volt_Prev)
     {
       Volt_Prev = Volt_Comp;
-      Volt_Chosen = i;  
+      Volt_Chosen = i; 
     }
-//    Serial.println("Volt_Chosen");    
-//    Serial.println(Volt_Chosen);
+    Serial.println("i");
+    Serial.println(i);
   }    
 }
 
@@ -155,6 +156,16 @@ void Act_Out()
     }
   }    
 }
+
+void Rst_DC ()
+{
+  Volt_Prev = 5;
+  Volt_Comp = 20;
+  i=0;   
+}
+
+
+
 
 
    
