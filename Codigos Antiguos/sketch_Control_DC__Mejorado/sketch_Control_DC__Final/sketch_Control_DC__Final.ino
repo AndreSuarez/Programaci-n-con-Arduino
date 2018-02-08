@@ -14,7 +14,8 @@ int a;
 int i=0;
 float Volt_Comp;
 float Volt_Prev = 5;
-byte Vt = 12;
+byte Vt;
+int Vt_B;
 int Data_Value;
 byte Volt_Chosen;
 int Ch_Out[8];
@@ -39,15 +40,20 @@ void setup() {
  
 }
 
-void loop() {
-
+void loop() { 
     Wire.onReceive(receiveEvent); // register event
-    Assignment_Out();
-    Selection_Volt();
-    Voltage_Compare(Vt);
-    Matrix_Out(Volt_Chosen);  
-    Act_Out(); 
-//    Rst_DC(); 
+    Serial.println("Vt");
+    Serial.println(Vt);
+    if(Vt =! 0)
+    {   
+      Limit_Function();
+      Assignment_Out();
+      Selection_Volt();
+      Voltage_Compare(int(Vt));
+      Matrix_Out(Volt_Chosen); 
+      Act_Out(); 
+      Rst_DC(); 
+    }  
 }
 
 
@@ -55,8 +61,19 @@ void receiveEvent(int howMany) {
   while (0 < Wire.available()) { // loop through all but the last
 
    Vt = Wire.read(); // receive byte as a character
-   Serial.println(Vt);
-   delay(10);
+
+  }
+}
+
+void Limit_Function ()
+{
+  if((Vt <= 11)&(Vt > 0))
+  {
+    Vt=12;
+  }
+  if(Vt >= 51)
+  {
+    Vt=50;
   }
 }
 
@@ -133,7 +150,9 @@ void Voltage_Compare(int Volt_Ref)
       Volt_Prev = Volt_Comp;
       Volt_Chosen = i; 
     }
-  }    
+  }
+  Serial.println("Volt_Chosen"); 
+  Serial.println(Volt_Chosen);   
 }
 
 void Matrix_Out (byte Selection_Out)
@@ -145,49 +164,46 @@ void Matrix_Out (byte Selection_Out)
 
 void Act_Out()
 {
-  for (int k=0; k <= 7; k++){
-    if(Ch_Out[k] == 1)
-    {
-      digitalWrite(Stage_Out[0], HIGH);
-      Serial.println();
-    }
-    if(Ch_Out[k] == 1)
-    {
-      digitalWrite(Stage_Out[1], HIGH);
-    }    
-    if(Ch_Out[k] == 1)
-    {
-      digitalWrite(Stage_Out[2], HIGH);
-    }
-    if(Ch_Out[k] == 1)
-    {
-      digitalWrite(Stage_Out[3], HIGH);
-    }
-    if(Ch_Out[k] == 1)
-    {
-      digitalWrite(Stage_Out[4], HIGH);
-    }
-    if(Ch_Out[k] == 1)
-    {
-      digitalWrite(Stage_Out[5], HIGH);
-    }
-    if(Ch_Out[k] == 1)
-    {
-      digitalWrite(Stage_Out[6], HIGH);
-    }
-    if(Ch_Out[k] == 1)
-    {
-      digitalWrite(Stage_Out[7], HIGH);
-    }                    
+  if(Ch_Out[0] == 1)
+  {
+    digitalWrite(Pwr_Stage1, HIGH);
+  }
+  if(Ch_Out[1] == 1)
+  {
+    digitalWrite(Pwr_Stage2, HIGH);
   }    
+  if(Ch_Out[2] == 1)
+  {
+    digitalWrite(Pwr_Stage3, HIGH);
+  }
+  if(Ch_Out[3] == 1)
+  {
+    digitalWrite(Pwr_Stage4, HIGH);
+  }
+  if(Ch_Out[4] == 1)
+  {
+    digitalWrite(Pwr_Stage5, HIGH);
+  }
+  if(Ch_Out[5] == 1)
+  {
+    digitalWrite(Pwr_Stage6, HIGH);
+  }
+  if(Ch_Out[6] == 1)
+  {
+    digitalWrite(Pwr_Stage7, HIGH);
+  }
+  if(Ch_Out[7] == 1)
+  {
+    digitalWrite(Pwr_Stage8, HIGH);
+    Serial.println(Pwr_Stage8);
+  }                        
 }
 
-//void Rst_DC ()
-//{
-//  Volt_Prev = 5;
-//  Volt_Comp = 20;
-//  i=0;   
-//}
+void Rst_DC ()
+{
+  Volt_Prev = 5;
+  Volt_Comp = 20;   
+}
 
 
 

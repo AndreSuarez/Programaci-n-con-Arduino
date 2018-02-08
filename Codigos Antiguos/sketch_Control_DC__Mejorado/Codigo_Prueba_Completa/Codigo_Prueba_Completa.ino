@@ -14,7 +14,7 @@ int a;
 int i=0;
 float Volt_Comp;
 float Volt_Prev = 5;
-byte Vt = 12;
+byte Vt = 32;
 int Data_Value;
 byte Volt_Chosen;
 int Ch_Out[8];
@@ -47,7 +47,7 @@ void loop() {
     Voltage_Compare(Vt);
     Matrix_Out(Volt_Chosen);  
     Act_Out(); 
-//    Rst_DC(); 
+    Rst_DC(); 
 }
 
 
@@ -55,7 +55,6 @@ void receiveEvent(int howMany) {
   while (0 < Wire.available()) { // loop through all but the last
 
    Vt = Wire.read(); // receive byte as a character
-   Serial.println(Vt);
    delay(10);
   }
 }
@@ -120,8 +119,7 @@ void Assignment_Out()
   Stage_Out[4] = Pwr_Stage5; 
   Stage_Out[5] = Pwr_Stage6; 
   Stage_Out[6] = Pwr_Stage7;
-  Stage_Out[7] = Pwr_Stage8; 
-           
+  Stage_Out[7] = Pwr_Stage8;          
 }
 
 void Voltage_Compare(int Volt_Ref)
@@ -133,7 +131,7 @@ void Voltage_Compare(int Volt_Ref)
       Volt_Prev = Volt_Comp;
       Volt_Chosen = i; 
     }
-  }    
+  }   
 }
 
 void Matrix_Out (byte Selection_Out)
@@ -145,49 +143,83 @@ void Matrix_Out (byte Selection_Out)
 
 void Act_Out()
 {
-  for (int k=0; k <= 7; k++){
-    if(Ch_Out[k] == 1)
-    {
-      digitalWrite(Stage_Out[0], HIGH);
-      Serial.println();
-    }
-    if(Ch_Out[k] == 1)
-    {
-      digitalWrite(Stage_Out[1], HIGH);
-    }    
-    if(Ch_Out[k] == 1)
-    {
-      digitalWrite(Stage_Out[2], HIGH);
-    }
-    if(Ch_Out[k] == 1)
-    {
-      digitalWrite(Stage_Out[3], HIGH);
-    }
-    if(Ch_Out[k] == 1)
-    {
-      digitalWrite(Stage_Out[4], HIGH);
-    }
-    if(Ch_Out[k] == 1)
-    {
-      digitalWrite(Stage_Out[5], HIGH);
-    }
-    if(Ch_Out[k] == 1)
-    {
-      digitalWrite(Stage_Out[6], HIGH);
-    }
-    if(Ch_Out[k] == 1)
-    {
-      digitalWrite(Stage_Out[7], HIGH);
-    }                    
+  if(Ch_Out[0] == 1)
+  {
+    digitalWrite(Pwr_Stage1, HIGH);
+  }
+  else if(Ch_Out[0] == 0)
+  {
+    digitalWrite(Pwr_Stage1, LOW);
+  }
+  if(Ch_Out[1] == 1)
+  {
+    digitalWrite(Pwr_Stage2, HIGH);
   }    
+  else if(Ch_Out[1] == 0)
+  {
+    digitalWrite(Pwr_Stage2, LOW);
+  }  
+  if(Ch_Out[2] == 1)
+  {
+    digitalWrite(Pwr_Stage3, HIGH);
+  }
+  else if(Ch_Out[2] == 0)
+  {
+    digitalWrite(Pwr_Stage3, LOW);
+  }
+  if(Ch_Out[3] == 1)
+  {
+    digitalWrite(Pwr_Stage4, HIGH);
+  }
+  else if(Ch_Out[3] == 0)
+  {
+    digitalWrite(Pwr_Stage4, LOW);
+  }    
+  if(Ch_Out[4] == 1)
+  {
+    digitalWrite(Pwr_Stage5, HIGH);
+  }
+  else if(Ch_Out[4] == 0)
+  {
+    digitalWrite(Pwr_Stage5, LOW);
+  }    
+  if(Ch_Out[5] == 1)
+  {
+    digitalWrite(Pwr_Stage6, HIGH);
+  }
+  else if(Ch_Out[5] == 0)
+  {
+    digitalWrite(Pwr_Stage6, LOW);
+  }    
+  if(Ch_Out[6] == 1)
+  {
+    digitalWrite(Pwr_Stage7, HIGH);
+  }
+  else if(Ch_Out[6] == 0)
+  {
+    digitalWrite(Pwr_Stage7, LOW);
+  }    
+  if(Ch_Out[7] == 1)
+  {
+    digitalWrite(Pwr_Stage8, HIGH);
+  } 
+  else if(Ch_Out[7] == 0)
+  {
+    digitalWrite(Pwr_Stage8, LOW);
+  }                           
 }
 
-//void Rst_DC ()
-//{
-//  Volt_Prev = 5;
-//  Volt_Comp = 20;
-//  i=0;   
-//}
+
+void Rst_DC ()
+{
+  Volt_Prev = 5;
+  Volt_Comp = 20;
+  i=0;   
+}
+
+
+
+
 
 
 

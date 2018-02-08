@@ -2,18 +2,18 @@
 
 // Todos los pines disponibles, por si necesita mas son: 8,9,14,15,16,17. Estan tambien las entradas al A/D Converter: A6,A7
 
-#define ECG_Detection 17 
-#define Alarma1 16
-#define Alarma2 15
+#define ECG_Detection 16 
+#define Alarma1 15
+#define Alarma2 14
 
 int Val;
-int Vm;
-int Vt;
+long Vm;
+long Vt;
 int Frec_Util;
 float C_Util;
-int Pot_Val;
-int Bio_Val;
-int Modo_Corte_Val;
+int Pot_Val = 100;
+int Bio_Val = 300;
+int Modo_Corte_Val = 1;
 
 void setup() 
 {
@@ -68,16 +68,16 @@ void Periodo_Util (int Signal_Type)                         // Obtencion del per
 
 void Calc_Power (long P_Value, long B_Value, float C_Val)
 {  
-  Val = B_Value * P_Value; 
-  Vm = sqrt(2*Val*C_Val);
+  Val = B_Value * P_Value;
+  Vm = sqrt(2)*sqrt(Val)*sqrt(C_Val);
   Vt = (Vm*2)/13;                         // Se obtiene un unico valor a transmitir Vt que es la tension de salida a cuadrar   
   Serial.println(Vt);
 }
 
 void Transmition_Control_DC ()
 {
-    Wire.beginTransmission(9); // transmit to device #9
-    Wire.write(Vt);
-    Wire.endTransmission();    // stop transmitting 
+  Wire.beginTransmission(9); // transmit to device #9
+  Wire.write(Vt);               // Tension de Salida
+  Wire.endTransmission();    // stop transmitting
 }
 
