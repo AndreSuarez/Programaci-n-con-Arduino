@@ -43,7 +43,6 @@ void setup() {
 void loop() {
 
   Wire.onReceive(receiveEvent); // register event
-  Assignment_Out();
   Kind_Cutting();
   Voltage_Compare(Vt);
   Matrix_Out(Volt_Chosen);  
@@ -72,17 +71,17 @@ void receiveEvent(int howMany) {
 
 void Kind_Cutting ()
 {
-  if(Screen Data == 1)
+  if(Screen_Data == 1)
   {
     Limit_Voltage_Cut();
     Selection_Volt_Cut();
   }
-  else if(Screen Data == 2)
+  else if(Screen_Data == 2)
   {
     Limit_Voltage_Blend();
     Selection_Volt_Blend();
   } 
-  else if(Screen Data == 3)
+  else if(Screen_Data == 3)
   {
     Limit_Voltage_Coag();
     Selection_Volt_Coag();
@@ -198,17 +197,17 @@ void Selection_Volt_Coag()
   
 }
 
-void Assignment_Out()
-{
-  Stage_Out[0] = Pwr_Stage1; 
-  Stage_Out[1] = Pwr_Stage2; 
-  Stage_Out[2] = Pwr_Stage3; 
-  Stage_Out[3] = Pwr_Stage4; 
-  Stage_Out[4] = Pwr_Stage5; 
-  Stage_Out[5] = Pwr_Stage6; 
-  Stage_Out[6] = Pwr_Stage7;
-  Stage_Out[7] = Pwr_Stage8;          
-}
+//void Assignment_Out()
+//{
+//  Stage_Out[0] = Pwr_Stage1; 
+//  Stage_Out[1] = Pwr_Stage2; 
+//  Stage_Out[2] = Pwr_Stage3; 
+//  Stage_Out[3] = Pwr_Stage4; 
+//  Stage_Out[4] = Pwr_Stage5; 
+//  Stage_Out[5] = Pwr_Stage6; 
+//  Stage_Out[6] = Pwr_Stage7;
+//  Stage_Out[7] = Pwr_Stage8;          
+//}
 
 void Voltage_Compare(int Volt_Ref)
 {
