@@ -14,7 +14,7 @@ int a;
 int i=0;
 float Volt_Comp;
 float Volt_Prev = 5;
-byte Vt = 32;
+byte Vt;
 byte Screen_Data;
 int Data_Value;
 byte Volt_Chosen;
@@ -26,7 +26,7 @@ void setup() {
   
   Serial.begin(9600);
   Wire.begin(9);
-  //Wire.onReceive(receiveEvent); // register event
+  Wire.onReceive(receiveEvent); // register event
   pinMode(Pwr_Stage1, OUTPUT);
   pinMode(Pwr_Stage2, OUTPUT);
   pinMode(Pwr_Stage3, OUTPUT);
@@ -42,7 +42,6 @@ void setup() {
 
 void loop() {
 
-  Wire.onReceive(receiveEvent); // register event
   Kind_Cutting();
   Voltage_Compare(Vt);
   Matrix_Out(Volt_Chosen);  
@@ -196,18 +195,6 @@ void Selection_Volt_Coag()
 {
   
 }
-
-//void Assignment_Out()
-//{
-//  Stage_Out[0] = Pwr_Stage1; 
-//  Stage_Out[1] = Pwr_Stage2; 
-//  Stage_Out[2] = Pwr_Stage3; 
-//  Stage_Out[3] = Pwr_Stage4; 
-//  Stage_Out[4] = Pwr_Stage5; 
-//  Stage_Out[5] = Pwr_Stage6; 
-//  Stage_Out[6] = Pwr_Stage7;
-//  Stage_Out[7] = Pwr_Stage8;          
-//}
 
 void Voltage_Compare(int Volt_Ref)
 {
