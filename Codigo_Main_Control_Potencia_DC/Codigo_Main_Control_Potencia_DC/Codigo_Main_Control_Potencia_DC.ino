@@ -8,8 +8,8 @@
 
 int Val;
 long Vm;
-long Vt = 20;
-int Screen_Data = 1;
+long Vt = 70;
+int Screen_Data = 3;
 //int Frec_Util;
 //float C_Util;
 //int Pot_Val = 100;
@@ -35,7 +35,7 @@ void loop()
   Transmition_Control_DC();                               // Transmision valor de tension del calculo de potencia           
 //  digitalWrite(Alarma1, HIGH);                            // Activaion Sonido Alarma 1   
 //  digitalWrite(Alarma2, HIGH);                            // Activaion Sonido Alarma 2 
-  delay(10000);
+  delay(100);
 }
 
 //void Periodo_Util (int Signal_Type)                         // Obtencion del periodo del ciclo util de la onda de modulacion          

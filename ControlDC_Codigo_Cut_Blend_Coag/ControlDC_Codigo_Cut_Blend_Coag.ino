@@ -10,11 +10,12 @@
 #define Pwr_Stage8  A3
 
 float Volt_level[255];
-int a;
+int a = 0;
 int i=0;
 float Volt_Comp;
 float Volt_Prev = 5;
-byte Vt;
+float Vt;
+int Vin;
 byte Screen_Data;
 int Data_Value;
 byte Volt_Chosen;
@@ -27,6 +28,7 @@ void setup() {
   Serial.begin(9600);
   Wire.begin(9);
   Wire.onReceive(receiveEvent); // register event
+  Serial.println(Vt);
   pinMode(Pwr_Stage1, OUTPUT);
   pinMode(Pwr_Stage2, OUTPUT);
   pinMode(Pwr_Stage3, OUTPUT);
@@ -41,7 +43,7 @@ void setup() {
 }
 
 void loop() {
-
+  Equation_L();
   Kind_Cutting();
   Voltage_Compare(Vt);
   Matrix_Out(Volt_Chosen);  
@@ -54,7 +56,7 @@ void receiveEvent(int howMany) {
   while (0 < Wire.available()) { // loop through all but the last
     if(a == 0)
     {
-      Vt = Wire.read(); // receive byte as a character
+      Vin = Wire.read(); // receive byte as a character
       a++;
       delay(10);
     } 
@@ -63,9 +65,14 @@ void receiveEvent(int howMany) {
       Screen_Data = Wire.read(); // receive byte as a character
       a = 0;
       delay(10);      
-    }
-    
+    }  
   }
+}
+
+void Equation_L ()
+{
+  Vt = (Vin-0.8518)/0.8853;
+  Serial.println(Vt); 
 }
 
 void Kind_Cutting ()
@@ -137,63 +144,202 @@ void Limit_Voltage_Coag()
 
 void Selection_Volt_Cut()
 {
-  Volt_level[1] = 49.44;
-  Volt_level[2] = 47.72;
-  Volt_level[4] = 45.81;
-  Volt_level[8] = 43.66;
-  Volt_level[16] = 41.24;
-  Volt_level[32] = 38.49;
-  Volt_level[3] = 35.72;
-  Volt_level[5] = 34.74;    
-  Volt_level[6] = 33.99;
-  Volt_level[9] = 33.61;
-  Volt_level[10] = 32.92;
-  Volt_level[17] = 32.30;
-  Volt_level[18] = 31.67;
-  Volt_level[20] = 30.94;
-  Volt_level[34] = 30.19;  
-  Volt_level[36] = 29.54; 
-  Volt_level[40] = 28.78;
-  Volt_level[7] = 28.06;
-  Volt_level[11] = 27.40;
-  Volt_level[13] = 26.89;
-  Volt_level[14] = 26.49;
-  Volt_level[21] = 26.13;
-  Volt_level[22] = 25.76;
-  Volt_level[37] = 25.22;
-  Volt_level[38] = 24.88;
-  Volt_level[65] = 24.29;
-  Volt_level[50] = 23.81;
-  Volt_level[72] = 23.21;
-  Volt_level[80] = 22.70;
-  Volt_level[27] = 22.26;
-  Volt_level[30] = 21.74;
-  Volt_level[46] = 21.18;
-  Volt_level[57] = 20.68;
-  Volt_level[82] = 20.24;
-  Volt_level[31] = 19.71;
-  Volt_level[47] = 19.29;
-  Volt_level[59] = 18.75;
-  Volt_level[86] = 18.25;
-  Volt_level[106] = 17.72;
-  Volt_level[79] = 17.21;
-  Volt_level[93] = 16.71;
-  Volt_level[118] = 16.17;
-  Volt_level[95] = 15.66;
-  Volt_level[123] = 15.19;
-  Volt_level[126] = 15.03;
-  Volt_level[127] = 14.34;
-  Volt_level[255] = 12.43;          
+  Volt_level[6] = 49.80;
+  Volt_level[8] = 45.96;
+  Volt_level[7] = 44.68;    
+  Volt_level[16] = 43.38;
+  Volt_level[9] = 41.66;
+  Volt_level[32] = 40.45;
+  Volt_level[10] = 39.96;
+  Volt_level[17] = 39.59;
+  Volt_level[12] = 38.34;
+  Volt_level[18] = 38.08;  
+  Volt_level[33] = 37.21; 
+  Volt_level[11] = 36.80;
+  Volt_level[20] = 36.63;
+  Volt_level[34] = 35.90;
+  Volt_level[19] = 35.25;
+  Volt_level[36] = 34.64;
+  Volt_level[21] = 34.04;
+  Volt_level[35] = 33.43;
+  Volt_level[22] = 32.99;
+  Volt_level[15] = 32.08;
+  Volt_level[24] = 31.49;
+  Volt_level[23] = 30.96;
+  Volt_level[40] = 30.09;
+  Volt_level[39] = 29.62;
+  Volt_level[48] = 29.14;
+  Volt_level[41] = 28.47;
+  Volt_level[28] = 28.17;
+  Volt_level[49] = 27.63;
+  Volt_level[44] = 27.11;
+  Volt_level[68] = 26.60;
+  Volt_level[30] = 26.20;
+  Volt_level[51] = 25.76;
+  Volt_level[53] = 25.20;
+  Volt_level[54] = 24.70;
+  Volt_level[72] = 24.15;
+  Volt_level[55] = 23.71;
+  Volt_level[73] = 23.21;
+  Volt_level[81] = 22.72;
+  Volt_level[60] = 22.27;
+  Volt_level[98] = 21.76;
+  Volt_level[85] = 21.24;
+  Volt_level[101] = 20.73;
+  Volt_level[87] = 20.29;
+  Volt_level[112] = 19.68;
+  Volt_level[106] = 19.20;
+  Volt_level[107] = 18.70;
+  Volt_level[117] = 18.21;
+  Volt_level[120] = 17.71;
+  Volt_level[122] = 17.14;
+  Volt_level[125] = 16.62;
+  Volt_level[127] = 16.15;
+  Volt_level[175] = 15.76;
+  Volt_level[224] = 15.37;
+  Volt_level[226] = 15.00;
+  Volt_level[191] = 14.59;
+  Volt_level[240] = 14.29;
+  Volt_level[223] = 13.71;
+  Volt_level[252] = 13.23;
+  Volt_level[254] = 13.01;
+  Volt_level[255] = 12.87;          
 }
 
 void Selection_Volt_Blend()
 {
-    
+  Volt_level[4] = 60.36;
+  Volt_level[3] = 56.13;
+  Volt_level[5] = 52.67;;
+  Volt_level[6] = 49.80;
+  Volt_level[8] = 45.96;
+  Volt_level[7] = 44.68;    
+  Volt_level[16] = 43.38;
+  Volt_level[9] = 41.66;
+  Volt_level[32] = 40.45;
+  Volt_level[10] = 39.96;
+  Volt_level[17] = 39.59;
+  Volt_level[12] = 38.34;
+  Volt_level[18] = 38.08;  
+  Volt_level[33] = 37.21; 
+  Volt_level[11] = 36.80;
+  Volt_level[20] = 36.63;
+  Volt_level[34] = 35.90;
+  Volt_level[19] = 35.25;
+  Volt_level[36] = 34.64;
+  Volt_level[21] = 34.04;
+  Volt_level[35] = 33.43;
+  Volt_level[22] = 32.99;
+  Volt_level[15] = 32.08;
+  Volt_level[24] = 31.49;
+  Volt_level[23] = 30.96;
+  Volt_level[40] = 30.09;
+  Volt_level[39] = 29.62;
+  Volt_level[48] = 29.14;
+  Volt_level[41] = 28.47;
+  Volt_level[28] = 28.17;
+  Volt_level[49] = 27.63;
+  Volt_level[44] = 27.11;
+  Volt_level[68] = 26.60;
+  Volt_level[30] = 26.20;
+  Volt_level[51] = 25.76;
+  Volt_level[53] = 25.20;
+  Volt_level[54] = 24.70;
+  Volt_level[72] = 24.15;
+  Volt_level[55] = 23.71;
+  Volt_level[73] = 23.21;
+  Volt_level[81] = 22.72;
+  Volt_level[60] = 22.27;
+  Volt_level[98] = 21.76;
+  Volt_level[85] = 21.24;
+  Volt_level[101] = 20.73;
+  Volt_level[87] = 20.29;
+  Volt_level[112] = 19.68;
+  Volt_level[106] = 19.20;
+  Volt_level[107] = 18.70;
+  Volt_level[117] = 18.21;
+  Volt_level[120] = 17.71;
+  Volt_level[122] = 17.14;
+  Volt_level[125] = 16.62;
+  Volt_level[127] = 16.15;
+  Volt_level[175] = 15.76;
+  Volt_level[224] = 15.37;
+  Volt_level[226] = 15.00;
+  Volt_level[191] = 14.59;
+  Volt_level[240] = 14.29;
+  Volt_level[223] = 13.71;
+  Volt_level[252] = 13.23;
+  Volt_level[254] = 13.01;
+  Volt_level[255] = 12.87;    
 }
 
 void Selection_Volt_Coag()
 {
-  
+  Volt_level[1] = 70.48;
+  Volt_level[2] = 65.11;
+  Volt_level[4] = 60.36;
+  Volt_level[3] = 56.13;
+  Volt_level[5] = 52.67;;
+  Volt_level[6] = 49.80;
+  Volt_level[8] = 45.96;
+  Volt_level[7] = 44.68;    
+  Volt_level[16] = 43.38;
+  Volt_level[9] = 41.66;
+  Volt_level[32] = 40.45;
+  Volt_level[10] = 39.96;
+  Volt_level[17] = 39.59;
+  Volt_level[12] = 38.34;
+  Volt_level[18] = 38.08;  
+  Volt_level[33] = 37.21; 
+  Volt_level[11] = 36.80;
+  Volt_level[20] = 36.63;
+  Volt_level[34] = 35.90;
+  Volt_level[19] = 35.25;
+  Volt_level[36] = 34.64;
+  Volt_level[21] = 34.04;
+  Volt_level[35] = 33.43;
+  Volt_level[22] = 32.99;
+  Volt_level[15] = 32.08;
+  Volt_level[24] = 31.49;
+  Volt_level[23] = 30.96;
+  Volt_level[40] = 30.09;
+  Volt_level[39] = 29.62;
+  Volt_level[48] = 29.14;
+  Volt_level[41] = 28.47;
+  Volt_level[28] = 28.17;
+  Volt_level[49] = 27.63;
+  Volt_level[44] = 27.11;
+  Volt_level[68] = 26.60;
+  Volt_level[30] = 26.20;
+  Volt_level[51] = 25.76;
+  Volt_level[53] = 25.20;
+  Volt_level[54] = 24.70;
+  Volt_level[72] = 24.15;
+  Volt_level[55] = 23.71;
+  Volt_level[73] = 23.21;
+  Volt_level[81] = 22.72;
+  Volt_level[60] = 22.27;
+  Volt_level[98] = 21.76;
+  Volt_level[85] = 21.24;
+  Volt_level[101] = 20.73;
+  Volt_level[87] = 20.29;
+  Volt_level[112] = 19.68;
+  Volt_level[106] = 19.20;
+  Volt_level[107] = 18.70;
+  Volt_level[117] = 18.21;
+  Volt_level[120] = 17.71;
+  Volt_level[122] = 17.14;
+  Volt_level[125] = 16.62;
+  Volt_level[127] = 16.15;
+  Volt_level[175] = 15.76;
+  Volt_level[224] = 15.37;
+  Volt_level[226] = 15.00;
+  Volt_level[191] = 14.59;
+  Volt_level[240] = 14.29;
+  Volt_level[223] = 13.71;
+  Volt_level[252] = 13.23;
+  Volt_level[254] = 13.01;
+  Volt_level[255] = 12.87;  
 }
 
 void Voltage_Compare(int Volt_Ref)
@@ -205,7 +351,7 @@ void Voltage_Compare(int Volt_Ref)
       Volt_Prev = Volt_Comp;
       Volt_Chosen = i; 
     }
-  }   
+  }  
 }
 
 void Matrix_Out (byte Selection_Out)
