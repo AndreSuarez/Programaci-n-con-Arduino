@@ -77,7 +77,7 @@ void Equation_L ()
 
 void Kind_Cutting ()
 {
-  if(Screen_Data == 1)
+  if((Screen_Data == 1)&&(Screen_Data == 3))
   {
     Limit_Voltage_Cut();
     Selection_Volt_Cut();
@@ -87,12 +87,13 @@ void Kind_Cutting ()
     Limit_Voltage_Blend();
     Selection_Volt_Blend();
   } 
-  else if(Screen_Data == 3)
+  else if((Screen_Data == 4)&&(Screen_Data == 5)&&(Screen_Data == 6))
   {
     Limit_Voltage_Coag();
     Selection_Volt_Coag();
   }
 }
+// Los valores de comparacion ya incluyen la ecuacion, es decir son valores reales para cambiar limites en las matrices de comparacion
 
 void Limit_Voltage_Cut()
 {
@@ -110,6 +111,7 @@ void Limit_Voltage_Cut()
   }
 }
 
+// Los valores de comparacion ya incluyen la ecuacion, es decir son valores reales para cambiar limites en las matrices de comparacion
 void Limit_Voltage_Blend()
 {
   if(Vt <= 11)
@@ -142,8 +144,11 @@ void Limit_Voltage_Coag()
   }
 }
 
+// Debido a valores reales, es decir tomados con multimetro se aumenta el valor maximo. Valor maximo 51[V]. 
+
 void Selection_Volt_Cut()
 {
+  Volt_level[5] = 52.67;
   Volt_level[6] = 49.80;
   Volt_level[8] = 45.96;
   Volt_level[7] = 44.68;    
@@ -206,11 +211,14 @@ void Selection_Volt_Cut()
   Volt_level[255] = 12.87;          
 }
 
+// Debido a valores reales, es decir tomados con multimetro se aumenta el valor maximo. Valor maximo real 61[V]
+
 void Selection_Volt_Blend()
 {
+  Volt_level[2] = 65.11;
   Volt_level[4] = 60.36;
   Volt_level[3] = 56.13;
-  Volt_level[5] = 52.67;;
+  Volt_level[5] = 52.67;
   Volt_level[6] = 49.80;
   Volt_level[8] = 45.96;
   Volt_level[7] = 44.68;    
