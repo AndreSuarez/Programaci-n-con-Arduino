@@ -45,7 +45,6 @@ void setup() {
 void loop() {
   Equation_L();
   Kind_Cutting();
-  Serial.println(Screen_Data);
   Voltage_Compare(Vt);
   Matrix_Out(Volt_Chosen);  
   Act_Out(); 
